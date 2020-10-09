@@ -2,14 +2,24 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Point : MonoBehaviour
 {
+
+    public Text positionText;
+
     public PointType pointType { get; set; }
 
     private void Start()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+    }
+
+    private void Update()
+    {
+        positionText.text = string.Format("{0}", (Vector2)transform.position);
+        positionText.rectTransform.position = Camera.main.WorldToScreenPoint(transform.position);
     }
 
     private void OnMouseEnter()
