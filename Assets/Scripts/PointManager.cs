@@ -1,30 +1,87 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.UIElements;
 
 public class PointManager : MonoBehaviour
 {
+
+    [Tooltip("控制点预制体")]
     public Point pointOrg;
 
+    [Tooltip("插值数目")]
+    [Range(2000, 10000)]
+    public int lampCount = 1000;
+
+    [Tooltip("控制点数量最大值")]
+    public int maxControlPointNumber = 30;
+
+    [Tooltip("操作UI面班管理器")]
     public OperationPanelController operatorUIManager;
-    private void Start()
+
+    [Header("信息界面")]
+    public Text typeT;
+    public Text degreeT;
+    public Text timesT;
+    public Text numT;
+    public Text lampT;
+
+    /// <summary>
+    /// 是否实际更新了控制点(包括添加和拖动)
+    /// </summary>
+    public bool IsUpdated { get; set; } = false;
+
+    /**********************************************************/
+
+    private void Awake()
     {
         points = new List<Point>();
         tmpPoints = new List<Vector2>();
     }
 
+    //private void Start()
+    //{
+    //    points = new List<Point>();
+    //    tmpPoints = new List<Vector2>();
+    //}
+
     private void Update()
     {
+        //更新控制点
         UpdatePoint(Input.GetMouseButton((int)MouseButton.LeftMouse));
-        BezierLine();
+        //更新曲线数据
+        updateCurveData();
+        //获取曲线信息
+        getCurveInfo(ref type, ref dgree, ref times, ref num, ref lamp);
+        //显示曲线信息
+        typeT.text = type;
+        degreeT.text = dgree;
+        timesT.text = times;
+        numT.text = num;
+        lampT.text = lamp;
     }
 
-    public delegate void UpdateLineData();
-
-    public UpdateLineData BezierLine { get; set; }
+    /// <summary>
+    /// 重置控制点
+    /// </summary>
+    public void ResetPoint()
+    {
+        Vector3 m_mousePosition = Vector2.zero;
+        dragPoint = null;
+        IsUpdated = false;
+        isDraged = false;
+        isInRange = false;
+        isInserted = false;
+        for (int i = 0; i < points.Count; i++)
+        {
+            Destroy(points[i].gameObject);
+        }
+        points.Clear();
+        tmpPoints.Clear();
+        updateCurveData = null;
+        getCurveInfo = null;
+    }
 
     /// <summary>
     /// 更新控制点(添加和拖动)
@@ -39,7 +96,7 @@ public class PointManager : MonoBehaviour
             {
                 //是否在某点的检测范围内
                 isInRange = points[i].IsContained;
-                
+
                 //设置高光
                 points[i].setHighlight(isInRange);
                 if (isInRange && isPressed && !isDraged)
@@ -60,7 +117,8 @@ public class PointManager : MonoBehaviour
         }
         if (isPressed)
         {
-            if (!isInserted && !operatorUIManager.isEnter)
+            if (points.Count < maxControlPointNumber &&
+                !isInserted && !operatorUIManager.isEnter)
             {
                 isInserted = true;
                 if (points.Count >= 2)
@@ -79,6 +137,7 @@ public class PointManager : MonoBehaviour
             isInserted = false;
             dragPoint = null;
         }
+        //复制到缓冲区内
         for (int i = 0; i < points.Count; i++)
         {
             if (i < tmpPoints.Count)
@@ -102,8 +161,9 @@ public class PointManager : MonoBehaviour
         newPoint.pointType = type;
         SetPointPosition(newPoint, m_mousePosition);
         points.Add(newPoint);
-        Debug.Log("添加了一个控制点,控制点个数: "+points.Count);
+        Debug.Log("添加了一个控制点,控制点个数: " + points.Count);
         IsUpdated = true;
+        ShowPosition(isShowPosition);
     }
 
     /// <summary>
@@ -111,21 +171,60 @@ public class PointManager : MonoBehaviour
     /// </summary>
     /// <param name="point">控制点引用</param>
     /// <param name="pos">新坐标</param>
-    public static void SetPointPosition(Point point, Vector3 pos)
+    private static void SetPointPosition(Point point, Vector3 pos)
     {
         point.transform.position = new Vector3(pos.x, pos.y, 0.0f);
     }
 
-    /// <summary>
-    /// 是否实际更新了控制点(包括添加和拖动)
-    /// </summary>
-    public bool IsUpdated { get; set; } = false;
+    private void ShowPosition(bool isShow)
+    {
+        for (int i = 0; i < points.Count; i++)
+        {
+            points[i].IsShowPosition = isShowPosition;
+        }
+    }
 
-    /*TMP*/
+    /**********************************************************/
+    //外部回调
+
+    public void ShowPosition()
+    {
+        isShowPosition = !isShowPosition;
+        for (int i = 0; i < points.Count; i++)
+        {
+            points[i].IsShowPosition = isShowPosition;
+        }
+    }
+
+    /// <summary>
+    /// 显示特征多边形
+    /// </summary>
+    public void ShowPolygon()
+    {
+        isShowPolygon = !isShowPolygon;
+        setPolygon(isShowPolygon);
+    }
+
+    /// <summary>
+    /// 显示多边形凸包
+    /// </summary>
+    public void ShowConvexHull()
+    {
+        isShowConvexHull = !isShowConvexHull;
+        setConvexHull(isShowPosition);
+    }
+
+    /**********************************************************/
+
+    private bool isShowPosition = false;
+    private bool isShowPolygon = false;
+    private bool isShowConvexHull = false;
 
     private bool isDraged = false;
     private bool isInRange = false;
     private bool isInserted = false;
+
+    string type, dgree, times, num, lamp;
 
     [NonSerialized]
     public List<Point> points;
@@ -136,4 +235,52 @@ public class PointManager : MonoBehaviour
     private Vector3 m_mousePosition;
 
     private Point dragPoint;
+
+
+    /**********************************************************/
+    //委托
+
+    public delegate void UpdateCurveDataCall();
+
+    public delegate void GetCurveInfoCall(ref string type, ref string degree,
+        ref string times, ref string num, ref string lamp);
+
+    public delegate void SetPolygonCall(bool isShow);
+
+    public delegate void SetConvexHullCall(bool isShow);
+
+    public delegate void SetKnotPointCall(bool isShow);
+
+    public delegate void UpDgreeCall(bool isUp);
+
+    /// <summary>
+    /// 更新曲线的数据，包括曲线顶点和一些附加属性
+    /// </summary>
+    public UpdateCurveDataCall updateCurveData { get; set; }
+
+    /// <summary>
+    /// 获取曲线各种属性的信息
+    /// </summary>
+    public GetCurveInfoCall getCurveInfo { get; set; }
+
+    /// <summary>
+    /// 设置是否显示特征多边形
+    /// </summary>
+    public SetPolygonCall setPolygon { get; set; }
+
+    /// <summary>
+    /// 设置是否显示多边形凸包
+    /// </summary>
+    public SetConvexHullCall setConvexHull { get; set; }
+
+    /// <summary>
+    /// 设置是否显示节点
+    /// </summary>
+    public SetKnotPointCall setKnotPoint { get; set; }
+
+    /// <summary>
+    /// 设置升/降阶
+    /// </summary>
+    public UpDgreeCall upDgree { get; set; }
+
 }
