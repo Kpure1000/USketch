@@ -13,13 +13,18 @@ public class PointManager : MonoBehaviour
     private void Start()
     {
         points = new List<Point>();
-        tmpPoints = new List<Point>();
+        tmpPoints = new List<Vector2>();
     }
 
     private void Update()
     {
         UpdatePoint(Input.GetMouseButton((int)MouseButton.LeftMouse));
+        BezierLine();
     }
+
+    public delegate void UpdateLineData();
+
+    public UpdateLineData BezierLine { get; set; }
 
     /// <summary>
     /// 更新控制点(添加和拖动)
@@ -78,11 +83,11 @@ public class PointManager : MonoBehaviour
         {
             if (i < tmpPoints.Count)
             {
-                tmpPoints[i] = points[i];
+                tmpPoints[i] = points[i].transform.position;
             }
             else
             {
-                tmpPoints.Add(points[i]);
+                tmpPoints.Add(points[i].transform.position);
             }
         }
     }
@@ -97,7 +102,7 @@ public class PointManager : MonoBehaviour
         newPoint.pointType = type;
         SetPointPosition(newPoint, m_mousePosition);
         points.Add(newPoint);
-        //Debug.Log("添加了一个控制点");
+        Debug.Log("添加了一个控制点,控制点个数: "+points.Count);
         IsUpdated = true;
     }
 
@@ -126,7 +131,7 @@ public class PointManager : MonoBehaviour
     public List<Point> points;
 
     [NonSerialized]
-    public List<Point> tmpPoints;
+    public List<Vector2> tmpPoints;
 
     private Vector3 m_mousePosition;
 
