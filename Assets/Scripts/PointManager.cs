@@ -38,6 +38,8 @@ public class PointManager : MonoBehaviour
     {
         points = new List<Point>();
         tmpPoints = new List<Vector2>();
+        convexHull = new List<Vector2>();
+        tmpConvex = new List<Vector2>();
     }
 
     //private void Start()
@@ -79,11 +81,20 @@ public class PointManager : MonoBehaviour
         }
         points.Clear();
         tmpPoints.Clear();
+        convexHull.Clear();
+        tmpConvex.Clear();
         updateCurveData = null;
         getCurveInfo = null;
+        //setKnotPoint(isShowPosition);
+    }
+
+    /// <summary>
+    /// 重新开始绘制控制点
+    /// </summary>
+    public void RestartPaint()
+    {
         setPolygon(isShowPolygon);
         setConvexHull(isShowConvexHull);
-        //setKnotPoint(isShowPosition);
     }
 
     /// <summary>
@@ -152,6 +163,11 @@ public class PointManager : MonoBehaviour
                 tmpPoints.Add(points[i].transform.position);
             }
         }
+        //求凸包
+        if(isShowConvexHull)
+        {
+            updateConvexHull();
+        }
     }
 
     /// <summary>
@@ -162,6 +178,7 @@ public class PointManager : MonoBehaviour
     {
         Point newPoint = Instantiate(pointOrg);
         newPoint.pointType = type;
+        newPoint.pName = 'P' + points.Count.ToString();
         SetPointPosition(newPoint, m_mousePosition);
         points.Add(newPoint);
         Debug.Log("添加了一个控制点,控制点个数: " + points.Count);
@@ -185,6 +202,67 @@ public class PointManager : MonoBehaviour
         {
             points[i].IsShowPosition = isShowPosition;
         }
+    }
+
+    /// <summary>
+    /// 求凸包
+    /// </summary>
+    private void updateConvexHull()
+    {
+        for (int i = 0; i < points.Count; i++)
+        {
+            if (i < tmpConvex.Count)
+            {
+                tmpConvex[i] = points[i].transform.position;
+            }
+            else
+            {
+                tmpConvex.Add(points[i].transform.position);
+            }
+        }
+
+        convexHull.Clear();
+
+        if (points.Count <= 3)
+        {
+            foreach (var item in tmpConvex)
+            {
+                convexHull.Add(item);
+            }
+            return;
+        }
+
+        //控制点排序
+        tmpConvex.Sort(comp);
+        
+        //下半凸包
+        for (int i = 0; i < tmpConvex.Count; i++) 
+        {
+            while (convexHull.Count > 1 && Cross(convexHull[convexHull.Count - 2],
+                convexHull[convexHull.Count - 1], tmpConvex[i]) < 0)
+            {
+                convexHull.RemoveAt(convexHull.Count - 1);
+            }
+            convexHull.Add(tmpConvex[i]);
+        }
+        int k = convexHull.Count;
+        //上半凸包
+        for (int i = tmpConvex.Count - 2; i >= 0; i--)
+        {
+            while (convexHull.Count > k && Cross(convexHull[convexHull.Count - 1],
+                convexHull[convexHull.Count - 2], tmpConvex[i]) > 0)
+            {
+                convexHull.RemoveAt(convexHull.Count - 1);
+            }
+            convexHull.Add(tmpConvex[i]);
+        }
+        //移除首尾重复点
+        convexHull.RemoveAt(convexHull.Count - 1);
+    }
+
+    static private float Cross(Vector2 a, Vector2 b, Vector2 c)
+    {
+        return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
     }
 
     /**********************************************************/
@@ -240,6 +318,10 @@ public class PointManager : MonoBehaviour
     [NonSerialized]
     public List<Vector2> tmpPoints;
 
+    public List<Vector2> convexHull;
+
+    public List<Vector2> tmpConvex;
+
     private Vector3 m_mousePosition;
 
     private Point dragPoint;
@@ -290,5 +372,11 @@ public class PointManager : MonoBehaviour
     /// 设置升/降阶
     /// </summary>
     public UpDgreeCall upDgree { get; set; }
+
+    Comparison<Vector2> comp = ((X, Y) =>
+    {
+        return (X.x < Y.x)
+               || (Mathf.Abs(X.x - Y.x) < 1e-6 && X.y < Y.y) ? -1 : 1;
+    });
 
 }

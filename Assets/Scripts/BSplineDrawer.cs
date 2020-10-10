@@ -218,6 +218,21 @@ public class BSplineDrawer : MonoBehaviour
             //}
             GL.End();
         }
+        if(isShowConvexHull)
+        {
+            GL.Begin(GL.LINE_STRIP);
+            for (int i = 0; i < pointManager.convexHull.Count; i++)
+            {
+                GL.Color(new Color(0.0f, 0.9f, 0.0f, 0.6f));
+                GL.Vertex(pointManager.convexHull[i]);
+            }
+            if (pointManager.convexHull.Count > 0)
+            {
+                GL.Color(new Color(0.0f, 0.9f, 0.0f, 0.6f));
+                GL.Vertex(pointManager.convexHull[0]);
+            }
+            GL.End();
+        }
     }
 
     /**********************************************************/
@@ -227,7 +242,6 @@ public class BSplineDrawer : MonoBehaviour
     /// </summary>
     public void RestartDraw()
     {
-        Debug.Log("B样条重置");
         SetKnotVector(pointManager.points.Count + degree);
         Debug.Log("B样条创建回调");
         //由自己实现控制点的回调
@@ -237,6 +251,7 @@ public class BSplineDrawer : MonoBehaviour
         pointManager.setConvexHull = (isShow) => { isShowConvexHull = isShow; };
         pointManager.setKnotPoint = (isShow) => { isShowKnot = isShow; };
         pointManager.upDgree = (isUp) => { if (isUp) UpDgree(); else DownDgree(); };
+        pointManager.RestartPaint();
     }
 
     /// <summary>

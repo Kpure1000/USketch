@@ -3,13 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-
+/// <summary>
+/// 控制点
+/// </summary>
 public class Point : MonoBehaviour
 {
 
     public Text positionText;
 
     public PointType pointType { get; set; }
+
+    public string pName { get; set; }
 
     private void Start()
     {
@@ -21,7 +25,7 @@ public class Point : MonoBehaviour
         if (IsShowPosition)
         {
             positionText.gameObject.SetActive(true);
-            positionText.text = string.Format("{0}", (Vector2)transform.position);
+            positionText.text = pName + (Vector2)transform.position;
             positionText.rectTransform.position = Camera.main.WorldToScreenPoint(transform.position);
         }
         else
@@ -74,20 +78,27 @@ public class Point : MonoBehaviour
 
     private SpriteRenderer spriteRenderer;
 }
-
+/// <summary>
+/// 控制点类型
+/// </summary>
 public enum PointType
 {
     Normal, // 普通
     Edge    // 端点
 }
 
+/// <summary>
+/// 曲线上的点
+/// </summary>
 public struct Vertex
 {
     public VertexType vertexType;
     public Vector2 pos;
     public Color color;
 }
-
+/// <summary>
+/// 曲线点类型
+/// </summary>
 public enum VertexType
 {
     Normal, // 普通

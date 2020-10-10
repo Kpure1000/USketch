@@ -133,6 +133,21 @@ public class BezierDrawer : MonoBehaviour
             //}
             GL.End();
         }
+        if (isShowConvexHull)
+        {
+            GL.Begin(GL.LINE_STRIP);
+            for (int i = 0; i < pointManager.convexHull.Count; i++)
+            {
+                GL.Color(new Color(0.0f, 0.9f, 0.0f, 0.6f));
+                GL.Vertex(pointManager.convexHull[i]);
+            }
+            if (pointManager.convexHull.Count > 0)
+            {
+                GL.Color(new Color(0.0f, 0.9f, 0.0f, 0.6f));
+                GL.Vertex(pointManager.convexHull[0]);
+            }
+            GL.End();
+        }
     }
 
     /**********************************************************/
@@ -149,6 +164,7 @@ public class BezierDrawer : MonoBehaviour
         pointManager.setPolygon = (isShow) => { isShowPolygon = isShow; };
         pointManager.setConvexHull = (isShow) => { isShowConvexHull = isShow; };
         pointManager.upDgree = (isUp) => { if (isUp) UpDgree(); else DownDgree(); };
+        pointManager.RestartPaint();
     }
 
     /// <summary>
