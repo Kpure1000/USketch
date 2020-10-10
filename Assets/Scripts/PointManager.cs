@@ -11,7 +11,7 @@ public class PointManager : MonoBehaviour
     public Point pointOrg;
 
     [Tooltip("插值数目")]
-    [Range(2000, 10000)]
+    [Range(20, 10000)]
     public int lampCount = 1000;
 
     [Tooltip("控制点数量最大值")]
@@ -91,7 +91,7 @@ public class PointManager : MonoBehaviour
     /// <summary>
     /// 重新开始绘制控制点
     /// </summary>
-    public void RestartPaint()
+    public void RestartCallBack()
     {
         setPolygon(isShowPolygon);
         setConvexHull(isShowConvexHull);
@@ -131,9 +131,11 @@ public class PointManager : MonoBehaviour
         }
         if (isPressed)
         {
-            if (points.Count < maxControlPointNumber &&
-                !isInserted && !operatorUIManager.isEnter)
+            if (!isForbidenInsert && !isInserted
+                && points.Count < maxControlPointNumber &&
+                 !operatorUIManager.isEnter)
             {
+                Debug.LogWarning("居然又添加了");
                 isInserted = true;
                 if (points.Count >= 2)
                 {
@@ -183,8 +185,28 @@ public class PointManager : MonoBehaviour
         points.Add(newPoint);
         Debug.Log("添加了一个控制点,控制点个数: " + points.Count);
         IsUpdated = true;
-        ShowPosition(isShowPosition);
+        //ShowPosition(isShowPosition);
     }
+
+    public void InsertPoint(Vector2 pos,PointType type)
+    {
+        Point newPoint = Instantiate(pointOrg);
+        newPoint.pointType = type;
+        newPoint.pName = 'P' + points.Count.ToString();
+        SetPointPosition(newPoint, pos);
+        points.Add(newPoint);
+        Debug.Log("添加了一个控制点,控制点个数: " + points.Count);
+        IsUpdated = true;
+        //ShowPosition(isShowPosition);
+    }
+
+    public void ForbidenInsert(bool isForbiden)
+    {
+        Debug.LogWarning("禁止插入控制点");
+        isForbidenInsert = isForbiden;
+    }
+
+    public bool IsForbiden { get { return isForbidenInsert; } }
 
     /// <summary>
     /// 设置控制点坐标
@@ -309,6 +331,8 @@ public class PointManager : MonoBehaviour
     private bool isDraged = false;
     private bool isInRange = false;
     private bool isInserted = false;
+
+    private bool isForbidenInsert = false;
 
     string type, dgree, times, num, lamp;
 

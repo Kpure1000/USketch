@@ -60,7 +60,7 @@ public class BezierDrawer : MonoBehaviour
     /// </summary>
     /// <param name="t"></param>
     /// <returns></returns>
-    private Vector3 findTarget(float t)
+    private Vector2 findTarget(float t)
     {
         for (int i = pointManager.tmpPoints.Count; i >= 1; i--)
         {
@@ -75,7 +75,7 @@ public class BezierDrawer : MonoBehaviour
         {
             return pointManager.tmpPoints[0];
         }
-        return Vector3.zero;
+        return Vector2.zero;
     }
 
     /// <summary>
@@ -109,13 +109,11 @@ public class BezierDrawer : MonoBehaviour
     /// </summary>
     private void OnPostRender()
     {
-        //GL.LoadOrtho();
-
         GL.Begin(GL.LINE_STRIP);
         for (int i = 0; i < vertexs.Length; i++)
         {
             GL.Color(vertexs[i].color);
-            GL.Vertex((vertexs[i].pos));
+            GL.Vertex(vertexs[i].pos);
         }
         GL.End();
         if (isShowPolygon)
@@ -158,13 +156,15 @@ public class BezierDrawer : MonoBehaviour
     /// </summary>
     public void RestartDraw()
     {
+        pointManager.ForbidenInsert(false);
+
         //由自己实现控制点的回调
         pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBezier);
         pointManager.getCurveInfo = new PointManager.GetCurveInfoCall(getBezierInfo);
         pointManager.setPolygon = (isShow) => { isShowPolygon = isShow; };
         pointManager.setConvexHull = (isShow) => { isShowConvexHull = isShow; };
         pointManager.upDgree = (isUp) => { if (isUp) UpDgree(); else DownDgree(); };
-        pointManager.RestartPaint();
+        pointManager.RestartCallBack();
     }
 
     /// <summary>

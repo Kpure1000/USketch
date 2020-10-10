@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions.Comparers;
 
 public class BSplineDrawer : MonoBehaviour
 {
@@ -33,9 +34,9 @@ public class BSplineDrawer : MonoBehaviour
 
     private void Start()
     {
-        knot = new List<Double>();
+        knot = new List<float>();
         vertexs = new Vertex[pointManager.lampCount];
-        tmpVer = new Vertex[pointManager.lampCount];
+        pTmp = new Vector2[pointManager.maxControlPointNumber];
         knotPoints = new List<Point>();
         RestartDraw();
         isShowKnot = false;
@@ -78,18 +79,18 @@ public class BSplineDrawer : MonoBehaviour
     /// <param name="k">次数（阶数-1）</param>
     /// <param name="u">节点索引</param>
     /// <returns>基函数的值</returns>
-    private double deBoor_Cox_RE(int i, int k, double u)
+    private float deBoor_Cox_RE(int i, int k, float u)
     {
         if (k == 0)
         {
-            return (u >= knot[i] && u < knot[i + 1]) ? 1.0 : 0.0;
+            return (u >= knot[i] && u < knot[i + 1]) ? 1.0f : 0.0f;
         }
 
         div1 = knot[i + k] - knot[i];
         div2 = knot[i + k + 1] - knot[i + 1];
 
-        U1 = (Math.Abs(div1) < 1e-7) ? 1.0 : (u - knot[i]) / div1;
-        U2 = (Math.Abs(div2) < 1e-7) ? 1.0 : (knot[i + k + 1] - u) / div2;
+        U1 = (Mathf.Abs(div1) < 1.0e-6f) ? 1.0f : (u - knot[i]) / div1;
+        U2 = (Mathf.Abs(div2) < 1.0e-6f) ? 1.0f : (knot[i + k + 1] - u) / div2;
 
         return U1 * deBoor_Cox_RE(i, k - 1, u) + U2 * deBoor_Cox_RE(i + 1, k - 1, u);
     }
@@ -106,11 +107,11 @@ public class BSplineDrawer : MonoBehaviour
                 SetKnotVector(pointManager.points.Count + degree);
             }
 
-            //tMin = knot[degree];
-            //tMax = knot[knot.Count - degree];
+            tMin = knot[degree - 1];
+            tMax = knot[knot.Count - degree];
 
-            tMin = knot[0];
-            tMin = knot[knot.Count - 1];
+            //tMin = knot[0];
+            //tMax = knot[knot.Count - 1];
 
             dt = (tMax - tMin) / (pointManager.lampCount - 1);
 
@@ -122,8 +123,8 @@ public class BSplineDrawer : MonoBehaviour
                     for (int j = 0; j < pointManager.points.Count; j++)
                     {
                         N_i_k = deBoor_Cox_RE(j, degree - 1, tMin + (i * dt));
-                        tmpPos.x += (float)N_i_k * pointManager.points[j].transform.position.x;
-                        tmpPos.y += (float)N_i_k * pointManager.points[j].transform.position.y;
+                        Debug.Log("递归: i:" + i + ", j: " + j + ", n: " + N_i_k);
+                        tmpPos += N_i_k * (Vector2)pointManager.points[j].transform.position;
                     }
                     vertexs[i].pos = tmpPos;
                 }
@@ -131,9 +132,9 @@ public class BSplineDrawer : MonoBehaviour
                 {
                     vertexs[i].pos = Vector2.zero;
                 }
-                vertexs[i].vertexType = VertexType.Normal;
                 vertexs[i].color = Color.blue;
             }
+            pointManager.IsUpdated = false;
         }
     }
 
@@ -144,47 +145,55 @@ public class BSplineDrawer : MonoBehaviour
     /// <param name="i">节点索引</param>
     /// <param name="u">节点插值</param>
     /// <returns></returns>
-    private Vector2 deBoor_Cox(int de,int i,float u)
+    private Vector2 deBoor_Cox(int de, int i, float u)
     {
         int k, j;
         double t1, t2;
-        for (j = 1 - de + 1; j < i + 1; j++) 
+        for (j = i - de + 1; j <= i + 1; j++)
         {
-            tmpVer[j] = vertexs[j];
+            pTmp[j] = pointManager.points[j].transform.position;
         }
-        for (k = 1; k <= de; k++) 
+        for (k = 1; k <= de; k++)
         {
             for (j = i + 1; j >= i - de + k + 1; j--)
             {
                 t1 = (float)(knot[j + de - k] - u) / (knot[j + de - k] - knot[j - 1]);
                 t2 = 1.0f - t1;
-                tmpVer[j].pos = (float)t1 * tmpVer[j - 1].pos + (float)t2 * tmpVer[j].pos;
+                pTmp[j] = (float)t1 * pTmp[j - 1] + (float)t2 * pTmp[j];
             }
         }
-        return tmpVer[i + 1].pos;
+        return pTmp[i + 1];
     }
 
     private void UpdateBSpline()
     {
-        int i, ii;
-        float u;
-        double subLamp;
-        int verIndex = 0;
-        for(i=degree-1;i<1+degree-1;i++)
+        if (pointManager.IsUpdated)
         {
-            if(knot[i+1] > knot[i])
+            if (knot.Count != pointManager.points.Count + degree)
             {
-                subLamp = (pointManager.lampCount) / (knot.Count - 1);
-                for (ii = 0;
-                    ii < subLamp;
-                    ii++) 
+                SetKnotVector(pointManager.points.Count + degree);
+            }
+            int i, ii;
+            float u;
+            int subLamp = (pointManager.lampCount) / (knot.Count - 1);
+            int verIndex = 0;
+            for (i = degree ; i < pointManager.points.Count - 1; i++)
+                //for (i = 0; i + 1 < knot.Count; i++)
+            {
+                if (knot[i + 1] > knot[i])
                 {
-                    u = (float)(knot[i] + ii * (knot[i + 1] - knot[i]) / subLamp);
-                    vertexs[verIndex].pos = deBoor_Cox(degree, i, u);
-                    vertexs[verIndex].color = Color.blue;
-                    verIndex++;
+                    Debug.Log("绘制");
+                    for (ii = 0; ii < subLamp; ii++)
+                    {
+                        u = (float)(knot[i] + ii * (knot[i + 1] - knot[i]) / subLamp);
+                        vertexs[verIndex].pos = deBoor_Cox(degree - 1, i, u);
+                        vertexs[verIndex].color = Color.blue;
+                        verIndex++;
+                    }
                 }
             }
+            Debug.Log("应有顶点: " + pointManager.lampCount +
+                "个， 实际顶点: " + verIndex + "个");
         }
     }
 
@@ -222,7 +231,7 @@ public class BSplineDrawer : MonoBehaviour
     {
         if (knot == null)
         {
-            knot = new List<double>();
+            knot = new List<float>();
         }
         if (knot.Count > 0)
         {
@@ -230,19 +239,7 @@ public class BSplineDrawer : MonoBehaviour
         }
         for (int i = 0; i < knotNum; i++)
         {
-            //if (i < degree)
-            //{
-            //    knot.Add(0.0);
-            //}
-            //else if (i > knotNum - degree)
-            //{
-            //    knot.Add((double)knot[i - 1]);
-            //}
-            //else
-            //{
-            //    knot.Add((double)knot[i - 1] + 1.0);
-            //}
-            knot.Add((double)i);
+            knot.Add((float)i / (knotNum - 1));
         }
     }
 
@@ -294,17 +291,27 @@ public class BSplineDrawer : MonoBehaviour
     /// </summary>
     public void RestartDraw()
     {
+        //if (!pointManager.IsForbiden)
+        //{
+        //    pointManager.InsertPoint(new Vector2(-6, 4), PointType.Normal);
+        //    pointManager.InsertPoint(new Vector2(-4f, -4f), PointType.Normal);
+        //    pointManager.InsertPoint(new Vector2(-2, 4), PointType.Normal);
+        //    pointManager.InsertPoint(new Vector2(0f, -4), PointType.Normal);
+        //    pointManager.InsertPoint(new Vector2(2, 4), PointType.Normal);
+        //    pointManager.InsertPoint(new Vector2(4f, -4), PointType.Normal);
+        //}
+        //pointManager.ForbidenInsert(true);
         SetKnotVector(pointManager.points.Count + degree);
         Debug.Log("B样条创建回调");
         //由自己实现控制点的回调
-        //pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBSpline_RE);
-        pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBSpline);
+        pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBSpline_RE);
+        //pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBSpline);
         pointManager.getCurveInfo = new PointManager.GetCurveInfoCall(getBSplineInfo);
         pointManager.setPolygon = (isShow) => { isShowPolygon = isShow; };
         pointManager.setConvexHull = (isShow) => { isShowConvexHull = isShow; };
         pointManager.setKnotPoint = (isShow) => { isShowKnot = isShow; };
         pointManager.upDgree = (isUp) => { if (isUp) UpDgree(); else DownDgree(); };
-        pointManager.RestartPaint();
+        pointManager.RestartCallBack();
     }
 
     /// <summary>
@@ -312,9 +319,12 @@ public class BSplineDrawer : MonoBehaviour
     /// </summary>
     public void CloseDraw()
     {
-        for (int i = 0; i < vertexs.Length; i++)
+        if (vertexs != null)
         {
-            vertexs[i].pos = Vector2.zero;
+            for (int i = 0; i < vertexs.Length; i++)
+            {
+                vertexs[i].pos = Vector2.zero;
+            }
         }
         pointManager.ResetPoint();
     }
@@ -324,11 +334,11 @@ public class BSplineDrawer : MonoBehaviour
     /// <summary>
     /// 节点向量
     /// </summary>
-    private List<double> knot;
+    private List<float> knot;
 
     private List<Point> knotPoints;
 
-    private double div1 = 0.0, div2 = 0.0, U1 = 0.0, U2 = 0.0;
+    private float div1, div2, U1, U2;
 
     private bool isShowPolygon;
 
@@ -336,11 +346,11 @@ public class BSplineDrawer : MonoBehaviour
 
     private bool isShowKnot;
 
-    private double tMin, tMax, dt, N_i_k;
+    private float tMin, tMax, dt, N_i_k;
 
     private Vertex[] vertexs;
 
-    private Vertex[] tmpVer;
+    private Vector2[] pTmp;
 
     private Vector2 tmpPos;
 }
