@@ -81,6 +81,9 @@ public class PointManager : MonoBehaviour
         tmpPoints.Clear();
         updateCurveData = null;
         getCurveInfo = null;
+        setPolygon(isShowPolygon);
+        setConvexHull(isShowConvexHull);
+        //setKnotPoint(isShowPosition);
     }
 
     /// <summary>
@@ -211,7 +214,12 @@ public class PointManager : MonoBehaviour
     public void ShowConvexHull()
     {
         isShowConvexHull = !isShowConvexHull;
-        setConvexHull(isShowPosition);
+        setConvexHull(isShowConvexHull);
+    }
+
+    public void UpDgree(bool isUp)
+    {
+        upDgree(isUp);
     }
 
     /**********************************************************/

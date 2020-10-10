@@ -8,17 +8,18 @@ public class BSplineDrawer : MonoBehaviour
     public PointManager pointManager;
 
     [Tooltip("曲线阶数")]
-    [Range(2, 4)]
     public int degree = 3;
+
+    [Tooltip("最小阶数")]
+    public int minDegree;
+    [Tooltip("最大阶数")]
+    public int maxDegree;
 
     /// <summary>
     /// 曲线次数
     /// </summary>
     [NonSerialized]
     public int times;
-
-
-
 
     /**********************************************************/
 
@@ -80,10 +81,7 @@ public class BSplineDrawer : MonoBehaviour
     {
         if (k == 0)
         {
-            if (u >= knot[i] && u <= knot[i + 1])
-                return 1.0;
-            else
-                return 0.0;
+            return (u >= knot[i] && u < knot[i + 1]) ? 1.0 : 0.0;
         }
 
         div1 = knot[i + k] - knot[i];
@@ -106,9 +104,12 @@ public class BSplineDrawer : MonoBehaviour
             {
                 SetKnotVector(pointManager.points.Count + degree);
             }
-            //Debug.Log("Knot长度: " + knot.Count);
-            tMin = knot[degree - 1];
-            tMax = knot[knot.Count - degree];
+
+            //tMin = knot[degree];
+            //tMax = knot[knot.Count - degree];
+
+            tMin = knot[0];
+            tMin = knot[knot.Count - 1];
 
             dt = (tMax - tMin) / (pointManager.lampCount - 1);
 
@@ -119,7 +120,7 @@ public class BSplineDrawer : MonoBehaviour
                     tmpPos = Vector2.zero;
                     for (int j = 0; j < pointManager.points.Count; j++)
                     {
-                        N_i_k = deBoor_Cox_RE(j, degree - 1, tMin + i * dt);
+                        N_i_k = deBoor_Cox_RE(j, degree - 1, tMin + (i * dt));
                         tmpPos.x += (float)N_i_k * pointManager.points[j].transform.position.x;
                         tmpPos.y += (float)N_i_k * pointManager.points[j].transform.position.y;
                     }
@@ -150,7 +151,7 @@ public class BSplineDrawer : MonoBehaviour
     /// </summary>
     private void UpDgree()
     {
-
+        degree = Mathf.Min(maxDegree, degree + 1);
     }
 
     /// <summary>
@@ -158,7 +159,7 @@ public class BSplineDrawer : MonoBehaviour
     /// </summary>
     private void DownDgree()
     {
-
+        degree = Mathf.Max(minDegree, degree - 1);
     }
 
     /// <summary>
@@ -175,24 +176,21 @@ public class BSplineDrawer : MonoBehaviour
         {
             knot.Clear();
         }
-        int c = 0;
         for (int i = 0; i < knotNum; i++)
         {
-            //if (i < degree+1)
+            //if (i < degree)
             //{
             //    knot.Add(0.0);
             //}
-            //else if (i > knotNum - degree-1)
+            //else if (i > knotNum - degree)
             //{
-            //    knot.Add((double)c);
+            //    knot.Add((double)knot[i - 1]);
             //}
             //else
             //{
-            //    c++;
-            //    knot.Add((double)c);
-
+            //    knot.Add((double)knot[i - 1] + 1.0);
             //}
-            knot.Add((double)i / knotNum);
+            knot.Add((double)i);
         }
     }
 
@@ -210,14 +208,14 @@ public class BSplineDrawer : MonoBehaviour
             GL.Begin(GL.LINE_STRIP);
             for (int i = 0; i < pointManager.points.Count; i++)
             {
-                GL.Color(Color.red);
+                GL.Color(new Color(0.9f, 0.0f, 0.0f, 0.5f));
                 GL.Vertex(pointManager.points[i].transform.position);
             }
-            if (pointManager.points.Count > 0)
-            {
-                GL.Color(Color.red);
-                GL.Vertex(pointManager.points[0].transform.position);
-            }
+            //if (pointManager.points.Count > 0)
+            //{
+            //    GL.Color(Color.red);
+            //    GL.Vertex(pointManager.points[0].transform.position);
+            //}
             GL.End();
         }
     }

@@ -123,14 +123,14 @@ public class BezierDrawer : MonoBehaviour
             GL.Begin(GL.LINE_STRIP);
             for (int i = 0; i < pointManager.points.Count; i++)
             {
-                GL.Color(Color.red);
+                GL.Color(new Color(0.9f, 0.0f, 0.0f, 0.5f));
                 GL.Vertex(pointManager.points[i].transform.position);
             }
-            if (pointManager.points.Count > 0)
-            {
-                GL.Color(Color.red);
-                GL.Vertex(pointManager.points[0].transform.position);
-            }
+            //if (pointManager.points.Count > 0)
+            //{
+            //    GL.Color(Color.red);
+            //    GL.Vertex(pointManager.points[0].transform.position);
+            //}
             GL.End();
         }
     }
