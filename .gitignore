@@ -1,0 +1,13 @@
+#dir
+/.vs/
+/obj/
+/Packages/
+/UserSettings/
+/Temp/
+/Logs/
+/Library/
+
+#file
+*.sln
+*.csproj
+*.DS_Store
