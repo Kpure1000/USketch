@@ -6,7 +6,7 @@
 /Temp/
 /Logs/
 /Library/
-
+/ProjectSettings/
 #file
 *.sln
 *.csproj
