@@ -52,11 +52,11 @@ public class Point : MonoBehaviour
     {
         if (isInRange)
         {
-            spriteRenderer.color = Color.cyan;
+            spriteRenderer.color = new Color(1.0f, 0, 0f, 0.65f);
         }
         else
         {
-            spriteRenderer.color = new Color(0, 0, 1.0f, 0.65f);
+            spriteRenderer.color = new Color(0, 1.0f, 1.0f, 0.65f);
         }
     }
 

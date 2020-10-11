@@ -136,12 +136,12 @@ public class BezierDrawer : MonoBehaviour
             GL.Begin(GL.LINE_STRIP);
             for (int i = 0; i < pointManager.convexHull.Count; i++)
             {
-                GL.Color(new Color(0.0f, 0.9f, 0.0f, 0.6f));
+                GL.Color(new Color(0.0f, 0.65f, 0.0f, 1.0f));
                 GL.Vertex(pointManager.convexHull[i]);
             }
             if (pointManager.convexHull.Count > 0)
             {
-                GL.Color(new Color(0.0f, 0.9f, 0.0f, 0.6f));
+                GL.Color(new Color(0.0f, 0.65f, 0.0f, 1.0f));
                 GL.Vertex(pointManager.convexHull[0]);
             }
             GL.End();

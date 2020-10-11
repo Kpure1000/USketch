@@ -93,6 +93,7 @@ public class PointManager : MonoBehaviour
     /// </summary>
     public void RestartCallBack()
     {
+        ShowPosition(isShowPosition);
         setPolygon(isShowPolygon);
         setConvexHull(isShowConvexHull);
     }
@@ -135,7 +136,6 @@ public class PointManager : MonoBehaviour
                 && points.Count < maxControlPointNumber &&
                  !operatorUIManager.isEnter)
             {
-                Debug.LogWarning("居然又添加了");
                 isInserted = true;
                 if (points.Count >= 2)
                 {
@@ -183,9 +183,9 @@ public class PointManager : MonoBehaviour
         newPoint.pName = 'P' + points.Count.ToString();
         SetPointPosition(newPoint, m_mousePosition);
         points.Add(newPoint);
-        Debug.Log("添加了一个控制点,控制点个数: " + points.Count);
+        //Debug.Log("添加了一个控制点,控制点个数: " + points.Count);
         IsUpdated = true;
-        //ShowPosition(isShowPosition);
+        ShowPosition(isShowPosition);
     }
 
     public void InsertPoint(Vector2 pos,PointType type)
@@ -195,7 +195,7 @@ public class PointManager : MonoBehaviour
         newPoint.pName = 'P' + points.Count.ToString();
         SetPointPosition(newPoint, pos);
         points.Add(newPoint);
-        Debug.Log("添加了一个控制点,控制点个数: " + points.Count);
+        //Debug.Log("添加了一个控制点,控制点个数: " + points.Count);
         IsUpdated = true;
         //ShowPosition(isShowPosition);
     }
@@ -231,13 +231,10 @@ public class PointManager : MonoBehaviour
     /// </summary>
     private void updateConvexHull()
     {
+        tmpConvex.Clear();
         for (int i = 0; i < points.Count; i++)
         {
-            if (i < tmpConvex.Count)
-            {
-                tmpConvex[i] = points[i].transform.position;
-            }
-            else
+            if (tmpConvex.Count <= 0 || tmpConvex[tmpConvex.Count - 1] != (Vector2)points[i].transform.position)
             {
                 tmpConvex.Add(points[i].transform.position);
             }
@@ -319,6 +316,7 @@ public class PointManager : MonoBehaviour
 
     public void UpDgree(bool isUp)
     {
+        IsUpdated = true;
         upDgree(isUp);
     }
 
@@ -399,8 +397,12 @@ public class PointManager : MonoBehaviour
 
     Comparison<Vector2> comp = ((X, Y) =>
     {
+        //if (X.x < Y.x) return -1;
+        //if (X.x == Y.x) { if (X.y < Y.y) return -1; }
+        //return 0;
+
         return (X.x < Y.x)
-               || (Mathf.Abs(X.x - Y.x) < 1e-6 && X.y < Y.y) ? -1 : 1;
+               || (X.x == Y.x && X.y < Y.y) ? -1 : 1;
     });
 
 }

@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using UnityEngine;
 using UnityEngine.Assertions.Comparers;
 
 public class BSplineDrawer : MonoBehaviour
 {
+    [DllImport("DeBoor_Cox.dll", CallingConvention = CallingConvention.Cdecl)]
+    extern static float BaseFunc(int i, int k, float u, float[] knotArray);
+
     public PointManager pointManager;
 
     [Tooltip("曲线阶数")]
@@ -79,10 +83,14 @@ public class BSplineDrawer : MonoBehaviour
     /// <param name="k">次数（阶数-1）</param>
     /// <param name="u">节点索引</param>
     /// <returns>基函数的值</returns>
+    [Obsolete]
     private float deBoor_Cox_RE(int i, int k, float u)
     {
         if (k == 0)
         {
+            //Debug.Log(string.Format("u({0}) >= [{1}]({2}) && u({3}) < [{4}]({5})",
+            //    u, i, knot[i], u, i + 1, knot[i + 1]));
+            //Debug.Log(u >= knot[i] && u < knot[i + 1]);
             return (u >= knot[i] && u < knot[i + 1]) ? 1.0f : 0.0f;
         }
 
@@ -92,7 +100,7 @@ public class BSplineDrawer : MonoBehaviour
         U1 = (Mathf.Abs(div1) < 1.0e-6f) ? 1.0f : (u - knot[i]) / div1;
         U2 = (Mathf.Abs(div2) < 1.0e-6f) ? 1.0f : (knot[i + k + 1] - u) / div2;
 
-        return U1 * deBoor_Cox_RE(i, k - 1, u) + U2 * deBoor_Cox_RE(i + 1, k - 1, u);
+        return U2 * deBoor_Cox_RE(i + 1, k - 1, u) + U1 * deBoor_Cox_RE(i, k - 1, u);
     }
 
     /// <summary>
@@ -122,8 +130,9 @@ public class BSplineDrawer : MonoBehaviour
                     tmpPos = Vector2.zero;
                     for (int j = 0; j < pointManager.points.Count; j++)
                     {
-                        N_i_k = deBoor_Cox_RE(j, degree - 1, tMin + (i * dt));
-                        Debug.Log("递归: i:" + i + ", j: " + j + ", n: " + N_i_k);
+                        N_i_k = BaseFunc(j, degree - 1, tMin + (i * dt), knot.ToArray());
+                        //N_i_k = deBoor_Cox_RE(j, degree - 1, tMin + (i * dt));
+                        //Debug.Log("递归: i:" + i + ", j: " + j + ", n: " + N_i_k);
                         tmpPos += N_i_k * (Vector2)pointManager.points[j].transform.position;
                     }
                     vertexs[i].pos = tmpPos;
@@ -145,6 +154,7 @@ public class BSplineDrawer : MonoBehaviour
     /// <param name="i">节点索引</param>
     /// <param name="u">节点插值</param>
     /// <returns></returns>
+    [Obsolete]
     private Vector2 deBoor_Cox(int de, int i, float u)
     {
         int k, j;
@@ -165,6 +175,7 @@ public class BSplineDrawer : MonoBehaviour
         return pTmp[i + 1];
     }
 
+    [Obsolete]
     private void UpdateBSpline()
     {
         if (pointManager.IsUpdated)
@@ -240,6 +251,20 @@ public class BSplineDrawer : MonoBehaviour
         for (int i = 0; i < knotNum; i++)
         {
             knot.Add((float)i / (knotNum - 1));
+            //if (i < degree)
+            //{
+            //    knot.Add(i);
+            //}
+            //else if (i <= knotNum - degree)
+            //{
+            //    knot.Add(knot[i - 1] + 1);
+            //}
+            //else
+            //{
+            //    knot.Add(knot[i - 1]);
+            //}
+            // 0 1 2 3 4, 2,3
+            // 0 0 1 2 2
         }
     }
 
@@ -272,12 +297,12 @@ public class BSplineDrawer : MonoBehaviour
             GL.Begin(GL.LINE_STRIP);
             for (int i = 0; i < pointManager.convexHull.Count; i++)
             {
-                GL.Color(new Color(0.0f, 0.9f, 0.0f, 0.6f));
+                GL.Color(new Color(0.0f, 0.65f, 0.0f, 1.0f));
                 GL.Vertex(pointManager.convexHull[i]);
             }
             if (pointManager.convexHull.Count > 0)
             {
-                GL.Color(new Color(0.0f, 0.9f, 0.0f, 0.6f));
+                GL.Color(new Color(0.0f, 0.65f, 0.0f, 1.0f));
                 GL.Vertex(pointManager.convexHull[0]);
             }
             GL.End();
