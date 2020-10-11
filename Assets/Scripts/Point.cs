@@ -13,6 +13,8 @@ public class Point : MonoBehaviour
 
     public PointType pointType { get; set; }
 
+    public HighLightType highLightType { get; set; }
+
     public string pName { get; set; }
 
     private void Start()
@@ -48,15 +50,22 @@ public class Point : MonoBehaviour
         //Debug.Log("啊我又出来了");
     }
 
-    public void setHighlight(bool isInRange)
+    public void setHighlight(HighLightType type)
     {
-        if (isInRange)
+        highLightType = type;
+        switch (type)
         {
-            spriteRenderer.color = new Color(1.0f, 0, 0f, 0.65f);
-        }
-        else
-        {
-            spriteRenderer.color = new Color(0, 1.0f, 1.0f, 0.65f);
+            case HighLightType.NONE:
+                spriteRenderer.color = new Color(0, 1.0f, 1.0f, 0.65f);
+                break;
+            case HighLightType.SINGLW:
+                spriteRenderer.color = new Color(1.0f, 0, 0f, 0.65f);
+                break;
+            case HighLightType.GROUP:
+                spriteRenderer.color = new Color(1.0f, 0, 0f, 0.65f);
+                break;
+            default:
+                break;
         }
     }
 
@@ -85,6 +94,13 @@ public enum PointType
 {
     Normal, // 普通
     Edge    // 端点
+}
+
+public enum HighLightType
+{
+    NONE,   //无高光
+    SINGLW, //单个高光
+    GROUP   //组高光
 }
 
 /// <summary>

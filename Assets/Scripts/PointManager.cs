@@ -40,18 +40,15 @@ public class PointManager : MonoBehaviour
         tmpPoints = new List<Vector2>();
         convexHull = new List<Vector2>();
         tmpConvex = new List<Vector2>();
+        dragPointsIndex = new List<int>();
+        dragRect = Rect.zero;
     }
-
-    //private void Start()
-    //{
-    //    points = new List<Point>();
-    //    tmpPoints = new List<Vector2>();
-    //}
 
     private void Update()
     {
         //更新控制点
-        UpdatePoint(Input.GetMouseButton((int)MouseButton.LeftMouse));
+        UpdatePoint(Input.GetMouseButton((int)MouseButton.LeftMouse),
+            Input.GetMouseButton((int)MouseButton.RightMouse));
         //更新曲线数据
         updateCurveData();
         //获取曲线信息
@@ -70,11 +67,18 @@ public class PointManager : MonoBehaviour
     public void ResetPoint()
     {
         Vector3 m_mousePosition = Vector2.zero;
+
         dragPoint = null;
+        dragPointsIndex.Clear();
+        dragRect = Rect.zero;
+
         IsUpdated = false;
         isDraged = false;
         isInRange = false;
         isInserted = false;
+        isAddRect = false;
+        isInRect = false;
+
         for (int i = 0; i < points.Count; i++)
         {
             Destroy(points[i].gameObject);
@@ -101,10 +105,45 @@ public class PointManager : MonoBehaviour
     /// <summary>
     /// 更新控制点(添加和拖动)
     /// </summary>
-    /// <param name="isPressed">是否按下鼠标左键</param>
-    void UpdatePoint(bool isPressed)
+    /// <param name="isLeftPressed">是否按下鼠标左键</param>
+    /// <param name="isRightPressd">是否按下鼠标右键</param>
+    void UpdatePoint(bool isLeftPressed, bool isRightPressd)
     {
         m_mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        if (isRightPressd)
+        {
+            if (!isAddRect)
+            {
+                dragPointsIndex.Clear();
+                isAddRect = true;
+                dragRect.position = m_mousePosition;
+            }
+            dragRect.size = m_mousePosition;
+            for (int i = 0; i < points.Count; i++)
+            {
+                if (pointContains(dragRect, points[i].transform.position))
+                {
+                    points[i].setHighlight(HighLightType.GROUP);
+                }
+                else
+                {
+                    points[i].setHighlight(HighLightType.NONE);
+                }
+            }
+        }
+        else if (isAddRect)
+        {
+            isAddRect = false;
+            dragRect.size = m_mousePosition;
+            for (int i = 0; i < points.Count; i++)
+            {
+                if (pointContains(dragRect, points[i].transform.position))
+                {
+                    if (!dragPointsIndex.Contains(i))
+                        dragPointsIndex.Add(i);
+                }
+            }
+        }
         if (!isDraged)
         {
             for (int i = 0; i < points.Count; i++)
@@ -112,26 +151,61 @@ public class PointManager : MonoBehaviour
                 //是否在某点的检测范围内
                 isInRange = points[i].IsContained;
 
-                //设置高光
-                points[i].setHighlight(isInRange);
-                if (isInRange && isPressed && !isDraged)
+                //设置高光,仅当不在选矿时有效
+                if (points[i].highLightType != HighLightType.GROUP)
+                {
+                    if (isInRange)
+                    {
+                        points[i].setHighlight(HighLightType.SINGLW);
+                    }
+                    else
+                    {
+                        points[i].setHighlight(HighLightType.NONE);
+                    }
+                }
+                #region 开始拖动
+                if (isInRange && isLeftPressed && !isDraged)
                 {
                     //Debug.Log("开始拖动");
                     isDraged = true;
                     dragPoint = points[i];
+                    m_mousePosition_Start = dragPoint.transform.position;
+
+                    isInRect = dragPointsIndex.Contains(i);
+
                     //插入了
                     isInserted = true;
                 }
+                #endregion
             }
         }
         else
         {
-            SetPointPosition(dragPoint, m_mousePosition);
+            #region 拖动时更新点位置
+
+            if (isInRect)
+            {
+                //一起拖动
+                for (int i = 0; i < dragPointsIndex.Count; i++)
+                {
+                    //TODO 这里有问题，不能直接赋值鼠标
+                    SetPointPosition(points[dragPointsIndex[i]],
+                        m_mousePosition_Start + );
+                }
+            }
+            else
+            {
+                //只拖自己
+                SetPointPosition(dragPoint, m_mousePosition);
+            }
+
             //更新了控制点
             IsUpdated = true;
+            #endregion
         }
-        if (isPressed)
+        if (isLeftPressed)
         {
+            #region INSERT point
             if (!isForbidenInsert && !isInserted
                 && points.Count < maxControlPointNumber &&
                  !operatorUIManager.isEnter)
@@ -146,14 +220,18 @@ public class PointManager : MonoBehaviour
                     InsertPoint(PointType.Edge);
                 }
             }
+            #endregion
         }
         else
         {
+            //Reset 状态
+
             isDraged = false;
             isInserted = false;
             dragPoint = null;
         }
-        //复制到缓冲区内
+
+        #region 复制到缓冲区内
         for (int i = 0; i < points.Count; i++)
         {
             if (i < tmpPoints.Count)
@@ -165,11 +243,14 @@ public class PointManager : MonoBehaviour
                 tmpPoints.Add(points[i].transform.position);
             }
         }
-        //求凸包
-        if(isShowConvexHull)
+        #endregion
+
+        #region 求凸包
+        if (isShowConvexHull)
         {
             updateConvexHull();
         }
+        #endregion
     }
 
     /// <summary>
@@ -188,7 +269,7 @@ public class PointManager : MonoBehaviour
         ShowPosition(isShowPosition);
     }
 
-    public void InsertPoint(Vector2 pos,PointType type)
+    public void InsertPoint(Vector2 pos, PointType type)
     {
         Point newPoint = Instantiate(pointOrg);
         newPoint.pointType = type;
@@ -253,9 +334,9 @@ public class PointManager : MonoBehaviour
 
         //控制点排序
         tmpConvex.Sort(comp);
-        
+
         //下半凸包
-        for (int i = 0; i < tmpConvex.Count; i++) 
+        for (int i = 0; i < tmpConvex.Count; i++)
         {
             while (convexHull.Count > 1 && Cross(convexHull[convexHull.Count - 2],
                 convexHull[convexHull.Count - 1], tmpConvex[i]) < 0)
@@ -282,6 +363,15 @@ public class PointManager : MonoBehaviour
     static private float Cross(Vector2 a, Vector2 b, Vector2 c)
     {
         return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
+    }
+
+    private bool pointContains(Rect range, Vector2 target)
+    {
+        judgeRect.x = Mathf.Min(range.x, range.width);
+        judgeRect.y = Mathf.Min(range.y, range.height);
+        judgeRect.width = Mathf.Abs(range.x - range.width);
+        judgeRect.height = Mathf.Abs(range.y - range.height);
+        return judgeRect.Contains(target);
     }
 
     /**********************************************************/
@@ -329,10 +419,21 @@ public class PointManager : MonoBehaviour
     private bool isDraged = false;
     private bool isInRange = false;
     private bool isInserted = false;
+    private bool isAddRect = false;
+    private bool isInRect = false;
 
     private bool isForbidenInsert = false;
 
+    private Vector3 m_mousePosition;
+    private Vector3 m_mousePosition_Start;
+
+    private Point dragPoint;
+
+    private List<int> dragPointsIndex;
+
     string type, dgree, times, num, lamp;
+
+    /**********************************************************/
 
     [NonSerialized]
     public List<Point> points;
@@ -344,10 +445,9 @@ public class PointManager : MonoBehaviour
 
     public List<Vector2> tmpConvex;
 
-    private Vector3 m_mousePosition;
+    public Rect dragRect;
 
-    private Point dragPoint;
-
+    public Rect judgeRect;
 
     /**********************************************************/
     //委托
@@ -404,5 +504,14 @@ public class PointManager : MonoBehaviour
         return (X.x < Y.x)
                || (X.x == Y.x && X.y < Y.y) ? -1 : 1;
     });
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = Color.red;
+        Gizmos.DrawLine(dragRect.position, new Vector2(dragRect.width, dragRect.y));
+        Gizmos.DrawLine(dragRect.position, new Vector2(dragRect.x, dragRect.height));
+        Gizmos.DrawLine(dragRect.size, new Vector2(dragRect.width, dragRect.y));
+        Gizmos.DrawLine(dragRect.size, new Vector2(dragRect.x, dragRect.height));
+    }
 
 }
