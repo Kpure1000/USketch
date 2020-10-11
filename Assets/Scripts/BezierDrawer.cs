@@ -20,6 +20,12 @@ public class BezierDrawer : MonoBehaviour
     public void Start()
     {
         vertexs = new Vertex[pointManager.lampCount];
+        //for (int i = 0; i < vertexs.Length; i++)
+        //{
+        //    vertexs[i].vertexType = VertexType.Normal;
+        //    vertexs[i].color = Color.blue;
+        //    vertexs[i].pos = Vector2.zero;
+        //}
         RestartDraw();
     }
 
@@ -83,7 +89,20 @@ public class BezierDrawer : MonoBehaviour
     /// </summary>
     private void UpDgree()
     {
-
+        if (pointManager.points.Count >= pointManager.maxControlPointNumber) return;
+        List<Vector2> ppos = new List<Vector2>();
+        int nn = pointManager.points.Count;
+        pointManager.InsertPoint(pointManager.points[nn - 1].transform.position, PointType.Normal);
+        for (int i = 0; i < pointManager.points.Count; i++)
+        {
+            ppos.Add(pointManager.points[i].transform.position);
+        }
+        for (int i = 1; i < nn; i++) 
+        {
+            pointManager.points[i].transform.position
+                = (float)i / (nn) * ppos[i - 1] + ((1.0f - (float)i / nn) * ppos[i]);
+        }
+        pointManager.IsUpdated = true;
     }
 
     /// <summary>
@@ -91,7 +110,28 @@ public class BezierDrawer : MonoBehaviour
     /// </summary>
     private void DownDgree()
     {
-
+        if (pointManager.points.Count <= 2) return;
+        List<Vector2> ppos = new List<Vector2>();
+        int nn = pointManager.points.Count - 1;
+        for (int i = 0; i < pointManager.points.Count; i++)
+        {
+            ppos.Add(pointManager.points[i].transform.position);
+        }
+        for (int i = 1; i < nn; i++)
+        {
+            if (i < nn - 1)
+            {
+                pointManager.points[i].transform.position
+                    = (ppos[i] - ((float)i / nn) * (Vector2)pointManager.points[i - 1].transform.position)
+                    / (1.0f - ((float)i / nn));
+            }
+            else
+            {
+                pointManager.points[i].transform.position = ppos[i + 1];
+                break;
+            }
+        }
+        pointManager.RemoveAt(nn);
     }
 
     private void getBezierInfo(ref string type, ref string dgree,
@@ -145,6 +185,18 @@ public class BezierDrawer : MonoBehaviour
                 GL.Vertex(pointManager.convexHull[0]);
             }
             GL.End();
+        }
+        if (pointManager.IsAddRect)
+        {
+            BSplineDrawer.DrawVirtualLine(pointManager.dragRect.position,
+                new Vector2(pointManager.dragRect.width, pointManager.dragRect.y), Color.red,0.1f);
+            BSplineDrawer.DrawVirtualLine(pointManager.dragRect.position,
+                new Vector2(pointManager.dragRect.x, pointManager.dragRect.height), Color.red, 0.1f);
+            BSplineDrawer.DrawVirtualLine(pointManager.dragRect.size,
+                new Vector2(pointManager.dragRect.width, pointManager.dragRect.y), Color.red, 0.1f);
+            BSplineDrawer.DrawVirtualLine(pointManager.dragRect.size,
+                new Vector2(pointManager.dragRect.x, pointManager.dragRect.height), Color.red, 0.1f);
+            
         }
     }
 

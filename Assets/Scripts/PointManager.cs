@@ -32,6 +32,8 @@ public class PointManager : MonoBehaviour
     /// </summary>
     public bool IsUpdated { get; set; } = false;
 
+    public bool IsAddRect { get; private set; } = false;
+
     /**********************************************************/
 
     private void Awake()
@@ -40,7 +42,7 @@ public class PointManager : MonoBehaviour
         tmpPoints = new List<Vector2>();
         convexHull = new List<Vector2>();
         tmpConvex = new List<Vector2>();
-        dragPointsIndex = new List<int>();
+        dragPointsIndex = new List<PointIndex>();
         dragRect = Rect.zero;
     }
 
@@ -76,7 +78,7 @@ public class PointManager : MonoBehaviour
         isDraged = false;
         isInRange = false;
         isInserted = false;
-        isAddRect = false;
+        IsAddRect = false;
         isInRect = false;
 
         for (int i = 0; i < points.Count; i++)
@@ -100,6 +102,7 @@ public class PointManager : MonoBehaviour
         ShowPosition(isShowPosition);
         setPolygon(isShowPolygon);
         setConvexHull(isShowConvexHull);
+        //setKnotPoint(isShowKnotPoint);
     }
 
     /// <summary>
@@ -112,10 +115,10 @@ public class PointManager : MonoBehaviour
         m_mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         if (isRightPressd)
         {
-            if (!isAddRect)
+            if (!IsAddRect)
             {
                 dragPointsIndex.Clear();
-                isAddRect = true;
+                IsAddRect = true;
                 dragRect.position = m_mousePosition;
             }
             dragRect.size = m_mousePosition;
@@ -131,16 +134,19 @@ public class PointManager : MonoBehaviour
                 }
             }
         }
-        else if (isAddRect)
+        else if (IsAddRect)
         {
-            isAddRect = false;
+            IsAddRect = false;
             dragRect.size = m_mousePosition;
+            //框选
             for (int i = 0; i < points.Count; i++)
             {
                 if (pointContains(dragRect, points[i].transform.position))
                 {
-                    if (!dragPointsIndex.Contains(i))
-                        dragPointsIndex.Add(i);
+                    if (!indexContains(dragPointsIndex, i))
+                    {
+                        dragPointsIndex.Add(new PointIndex(i, points[i].transform.position));
+                    }
                 }
             }
         }
@@ -171,7 +177,7 @@ public class PointManager : MonoBehaviour
                     dragPoint = points[i];
                     m_mousePosition_Start = dragPoint.transform.position;
 
-                    isInRect = dragPointsIndex.Contains(i);
+                    isInRect = indexContains(dragPointsIndex, i);
 
                     //插入了
                     isInserted = true;
@@ -188,9 +194,8 @@ public class PointManager : MonoBehaviour
                 //一起拖动
                 for (int i = 0; i < dragPointsIndex.Count; i++)
                 {
-                    //TODO 这里有问题，不能直接赋值鼠标
-                    SetPointPosition(points[dragPointsIndex[i]],
-                        m_mousePosition_Start + );
+                    SetPointPosition(points[dragPointsIndex[i].index], dragPointsIndex[i].originPos +
+                        (Vector2)(m_mousePosition - m_mousePosition_Start));
                 }
             }
             else
@@ -229,6 +234,11 @@ public class PointManager : MonoBehaviour
             isDraged = false;
             isInserted = false;
             dragPoint = null;
+            //更新index点的初始位置
+            for (int i = 0; i < dragPointsIndex.Count; i++)
+            {
+                dragPointsIndex[i].originPos = (Vector2)points[dragPointsIndex[i].index].transform.position;
+            }
         }
 
         #region 复制到缓冲区内
@@ -264,7 +274,17 @@ public class PointManager : MonoBehaviour
         newPoint.pName = 'P' + points.Count.ToString();
         SetPointPosition(newPoint, m_mousePosition);
         points.Add(newPoint);
-        //Debug.Log("添加了一个控制点,控制点个数: " + points.Count);
+        for (int i = 0; i < points.Count; i++)
+        {
+            if (i < tmpPoints.Count)
+            {
+                tmpPoints[i] = points[i].transform.position;
+            }
+            else
+            {
+                tmpPoints.Add(points[i].transform.position);
+            }
+        }
         IsUpdated = true;
         ShowPosition(isShowPosition);
     }
@@ -276,9 +296,43 @@ public class PointManager : MonoBehaviour
         newPoint.pName = 'P' + points.Count.ToString();
         SetPointPosition(newPoint, pos);
         points.Add(newPoint);
-        //Debug.Log("添加了一个控制点,控制点个数: " + points.Count);
+        #region 复制到缓冲区内
+        for (int i = 0; i < points.Count; i++)
+        {
+            if (i < tmpPoints.Count)
+            {
+                tmpPoints[i] = points[i].transform.position;
+            }
+            else
+            {
+                tmpPoints.Add(points[i].transform.position);
+            }
+        }
+        #endregion
         IsUpdated = true;
-        //ShowPosition(isShowPosition);
+        ShowPosition(isShowPosition);
+    }
+
+    public void RemoveAt(int index)
+    {
+        Destroy(points[index].gameObject);
+        points.RemoveAt(index);
+        tmpPoints.RemoveAt(index);
+        #region 复制到缓冲区内
+        for (int i = 0; i < points.Count; i++)
+        {
+            if (i < tmpPoints.Count)
+            {
+                tmpPoints[i] = points[i].transform.position;
+            }
+            else
+            {
+                tmpPoints.Add(points[i].transform.position);
+            }
+        }
+        #endregion
+        IsUpdated = true;
+        ShowPosition(isShowPosition);
     }
 
     public void ForbidenInsert(bool isForbiden)
@@ -374,6 +428,15 @@ public class PointManager : MonoBehaviour
         return judgeRect.Contains(target);
     }
 
+    private bool indexContains(List<PointIndex> pointIndex, int index)
+    {
+        for (int i = 0; i < pointIndex.Count; i++)
+        {
+            if (index == pointIndex[i].index) return true;
+        }
+        return false;
+    }
+
     /**********************************************************/
     //外部回调
 
@@ -404,6 +467,12 @@ public class PointManager : MonoBehaviour
         setConvexHull(isShowConvexHull);
     }
 
+    public void ShowKnotPoint()
+    {
+        isShowKnotPoint = !isShowKnotPoint;
+        setKnotPoint(isShowKnotPoint);
+    }
+
     public void UpDgree(bool isUp)
     {
         IsUpdated = true;
@@ -415,11 +484,11 @@ public class PointManager : MonoBehaviour
     private bool isShowPosition = false;
     private bool isShowPolygon = false;
     private bool isShowConvexHull = false;
+    private bool isShowKnotPoint = false;
 
     private bool isDraged = false;
     private bool isInRange = false;
     private bool isInserted = false;
-    private bool isAddRect = false;
     private bool isInRect = false;
 
     private bool isForbidenInsert = false;
@@ -429,7 +498,7 @@ public class PointManager : MonoBehaviour
 
     private Point dragPoint;
 
-    private List<int> dragPointsIndex;
+    private List<PointIndex> dragPointsIndex;
 
     string type, dgree, times, num, lamp;
 
@@ -505,13 +574,25 @@ public class PointManager : MonoBehaviour
                || (X.x == Y.x && X.y < Y.y) ? -1 : 1;
     });
 
-    private void OnDrawGizmos()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawLine(dragRect.position, new Vector2(dragRect.width, dragRect.y));
-        Gizmos.DrawLine(dragRect.position, new Vector2(dragRect.x, dragRect.height));
-        Gizmos.DrawLine(dragRect.size, new Vector2(dragRect.width, dragRect.y));
-        Gizmos.DrawLine(dragRect.size, new Vector2(dragRect.x, dragRect.height));
-    }
+    //private void OnDrawGizmos()
+    //{
+    //    Gizmos.color = Color.red;
+    //    Gizmos.DrawLine(dragRect.position, new Vector2(dragRect.width, dragRect.y));
+    //    Gizmos.DrawLine(dragRect.position, new Vector2(dragRect.x, dragRect.height));
+    //    Gizmos.DrawLine(dragRect.size, new Vector2(dragRect.width, dragRect.y));
+    //    Gizmos.DrawLine(dragRect.size, new Vector2(dragRect.x, dragRect.height));
+    //}
 
+}
+
+
+public class PointIndex
+{
+    public PointIndex(int Index,Vector2 pos)
+    {
+        index = Index;
+        originPos = pos;
+    }
+    public int index { get; set; }
+    public Vector2 originPos { get; set; }
 }
