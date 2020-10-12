@@ -13,15 +13,14 @@ __A Sketcher of Bezier/B-Spline Curves by Unity3D__
 - [x] __SHOW control point position__
 - [x] __SHOW feature polygon__
 - [x] __SHOW Convex Hull polygon__
-- [ ] __SHOW Knot position of B-Spline__
+- [x] __SHOW Knot position of B-Spline__
 - [ ] __SHOW controlled segment on curve of B-spline control points__
 - [x] __UP/DOWN degree of B-spline__
 - [ ] __UP/DOWN degree of Bezier__
-- [ ] __SCALE and DRAG Camera View__
-- [ ] **SELECT and DRAG control points in a painted rectangle range**
-  - [ ] **DRAW a rectangle range**
-  - [ ] **CREATE new State in point manager**
-  - [ ] 
+- [x] __SCALE and DRAG Camera View__
+- [x] **SELECT and DRAG control points in a painted rectangle range**
+  - [x] **DRAW a rectangle range**
+  - [x] **CREATE new State in point manager** 
 
 
 
