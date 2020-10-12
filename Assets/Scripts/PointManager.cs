@@ -372,7 +372,7 @@ public class PointManager : MonoBehaviour
         tmpConvex.Clear();
         for (int i = 0; i < points.Count; i++)
         {
-            if (tmpConvex.Count <= 0 || tmpConvex[tmpConvex.Count - 1] != (Vector2)points[i].transform.position)
+            if (tmpConvex.Count <= 0 || !tmpConvex.Contains((Vector2)points[i].transform.position)) 
             {
                 tmpConvex.Add(points[i].transform.position);
             }
