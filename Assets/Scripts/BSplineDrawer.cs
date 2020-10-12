@@ -246,7 +246,7 @@ public class BSplineDrawer : MonoBehaviour
 
     public void ShowKnotPoint()
     {
-        Debug.Log("显示节点: " + isShowKnot);
+        //Debug.Log("显示节点: " + isShowKnot);
         if (pointManager.points.Count <= 1) return;
         if (isShowKnot)
         {
@@ -386,7 +386,7 @@ public class BSplineDrawer : MonoBehaviour
         pointManager.setPolygon = (isShow) => { isShowPolygon = isShow; };
         pointManager.setConvexHull = (isShow) => { isShowConvexHull = isShow; };
         pointManager.setKnotPoint = (isShow) => { isShowKnot = isShow; ShowKnotPoint(); };
-        pointManager.upDgree = (isUp) => {  if (isUp) UpDgree(); else DownDgree(); };
+        pointManager.upDgree = (isUp) => { if (isUp) UpDgree(); else DownDgree(); };
         pointManager.RestartCallBack();
     }
 
