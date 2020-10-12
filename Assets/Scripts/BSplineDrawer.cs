@@ -46,7 +46,6 @@ public class BSplineDrawer : MonoBehaviour
         pTmp = new Vector2[pointManager.maxControlPointNumber];
         knotPoints = new List<Point>();
         RestartDraw();
-        isShowKnot = false;
     }
 
 
@@ -247,6 +246,8 @@ public class BSplineDrawer : MonoBehaviour
 
     public void ShowKnotPoint()
     {
+        Debug.Log("显示节点: " + isShowKnot);
+        if (pointManager.points.Count <= 1) return;
         if (isShowKnot)
         {
             float sum = knot[knot.Count - 1];
@@ -254,13 +255,11 @@ public class BSplineDrawer : MonoBehaviour
             {
                 if (i < knotPoints.Count)
                 {
-                    Debug.Log("显示节点");
                     knotPoints[i].transform.position
                         = vertexs[(int)(knot[i] / sum * (vertexs.Length - 1))].pos;
                 }
                 else
                 {
-                    Debug.Log("添加节点");
                     Point newPoint = Instantiate(pointManager.pointOrg);
                     newPoint.transform.position
                         = vertexs[(int)(knot[i] / sum * (vertexs.Length - 1))].pos;
@@ -387,7 +386,7 @@ public class BSplineDrawer : MonoBehaviour
         pointManager.setPolygon = (isShow) => { isShowPolygon = isShow; };
         pointManager.setConvexHull = (isShow) => { isShowConvexHull = isShow; };
         pointManager.setKnotPoint = (isShow) => { isShowKnot = isShow; ShowKnotPoint(); };
-        pointManager.upDgree = (isUp) => { ShowKnotPoint(); if (isUp) UpDgree(); else DownDgree(); };
+        pointManager.upDgree = (isUp) => {  if (isUp) UpDgree(); else DownDgree(); };
         pointManager.RestartCallBack();
     }
 

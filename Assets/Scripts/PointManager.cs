@@ -91,7 +91,9 @@ public class PointManager : MonoBehaviour
         tmpConvex.Clear();
         updateCurveData = null;
         getCurveInfo = null;
-        //setKnotPoint(isShowPosition);
+        setPolygon = null;
+        setKnotPoint = null;
+        setConvexHull = null;
     }
 
     /// <summary>
@@ -102,7 +104,7 @@ public class PointManager : MonoBehaviour
         ShowPosition(isShowPosition);
         setPolygon(isShowPolygon);
         setConvexHull(isShowConvexHull);
-        //setKnotPoint(isShowKnotPoint);
+        setKnotPoint?.Invoke(isShowKnotPoint);
     }
 
     /// <summary>
@@ -470,7 +472,7 @@ public class PointManager : MonoBehaviour
     public void ShowKnotPoint()
     {
         isShowKnotPoint = !isShowKnotPoint;
-        setKnotPoint(isShowKnotPoint);
+        setKnotPoint?.Invoke(isShowKnotPoint);
     }
 
     public void UpDgree(bool isUp)
@@ -588,7 +590,7 @@ public class PointManager : MonoBehaviour
 
 public class PointIndex
 {
-    public PointIndex(int Index,Vector2 pos)
+    public PointIndex(int Index, Vector2 pos)
     {
         index = Index;
         originPos = pos;
