@@ -10,6 +10,9 @@ public class BSplineDrawer : MonoBehaviour
     [DllImport("DeBoor_Cox.dll", CallingConvention = CallingConvention.Cdecl)]
     extern static float BaseFunc(int i, int k, float u, float[] knotArray);
 
+    //[DllImport("libMyLibTest.dylib", CallingConvention = CallingConvention.Cdecl)]
+    //extern static float BaseFunction(int i, int k, float u, float[] knotArray);
+
     public PointManager pointManager;
 
     [Tooltip("曲线阶数")]
@@ -103,6 +106,7 @@ public class BSplineDrawer : MonoBehaviour
                     for (int j = 0; j < pointManager.points.Count; j++)
                     {
                         N_i_k = BaseFunc(j, degree - 1, tMin + (i * dt), knot.ToArray());
+                        //N_i_k = BaseFunction(j, degree - 1, tMin + (i * dt), knot.ToArray());
                         //N_i_k = deBoor_Cox_RE(j, degree - 1, tMin + (i * dt));
                         //Debug.Log("递归: i:" + i + ", j: " + j + ", n: " + N_i_k);
                         tmpPos += N_i_k * (Vector2)pointManager.points[j].transform.position;
