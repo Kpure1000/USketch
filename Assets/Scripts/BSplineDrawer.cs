@@ -276,6 +276,11 @@ public class BSplineDrawer : MonoBehaviour
         }
         else
         {
+            while (knot.Count < knotPoints.Count)
+            {
+                Destroy(knotPoints[knotPoints.Count - 1].gameObject);
+                knotPoints.RemoveAt(knotPoints.Count - 1);
+            }
             for (int i = 0; i < knotPoints.Count; i++)
             {
                 knotPoints[i].gameObject.SetActive(false);
@@ -403,6 +408,17 @@ public class BSplineDrawer : MonoBehaviour
             }
         }
         pointManager.ResetPoint();
+        //SetKnotVector(degree);
+        //isShowKnot = false;
+        //ShowKnotPoint();
+        if(knotPoints!=null)
+        {
+            for (int i = 0; i < knotPoints.Count; i++)
+            {
+                Destroy(knotPoints[i].gameObject);
+            }
+            knotPoints.Clear();
+        }
     }
 
     /**********************************************************/

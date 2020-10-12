@@ -339,7 +339,6 @@ public class PointManager : MonoBehaviour
 
     public void ForbidenInsert(bool isForbiden)
     {
-        Debug.LogWarning("禁止插入控制点");
         isForbidenInsert = isForbiden;
     }
 
