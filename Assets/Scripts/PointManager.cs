@@ -8,7 +8,9 @@ public class PointManager : MonoBehaviour
 {
 
     [Tooltip("控制点预制体")]
-    public Point pointOrg;
+    public Point controlPointOrg;
+    [Tooltip("节点预制体")]
+    public Point knotPointOrg;
 
     [Tooltip("插值数目")]
     [Range(20, 10000)]
@@ -271,7 +273,7 @@ public class PointManager : MonoBehaviour
     /// <param name="type">控制点类型</param>
     private void InsertPoint(PointType type)
     {
-        Point newPoint = Instantiate(pointOrg);
+        Point newPoint = Instantiate(controlPointOrg);
         newPoint.pointType = type;
         newPoint.pName = 'P' + points.Count.ToString();
         SetPointPosition(newPoint, m_mousePosition);
@@ -293,7 +295,7 @@ public class PointManager : MonoBehaviour
 
     public void InsertPoint(Vector2 pos, PointType type)
     {
-        Point newPoint = Instantiate(pointOrg);
+        Point newPoint = Instantiate(controlPointOrg);
         newPoint.pointType = type;
         newPoint.pName = 'P' + points.Count.ToString();
         SetPointPosition(newPoint, pos);

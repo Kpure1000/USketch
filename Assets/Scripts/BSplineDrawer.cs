@@ -260,10 +260,10 @@ public class BSplineDrawer : MonoBehaviour
                 }
                 else
                 {
-                    Point newPoint = Instantiate(pointManager.pointOrg);
+                    Point newPoint = Instantiate(pointManager.knotPointOrg);
                     newPoint.transform.position
                         = vertexs[(int)(knot[i] / sum * (vertexs.Length - 1))].pos;
-                    newPoint.transform.localScale = new Vector3(0.65f, 0.65f, 1.0f);
+                    //newPoint.transform.localScale = new Vector3(0.65f, 0.65f, 1.0f);
                     knotPoints.Add(newPoint);
                 }
                 knotPoints[i].gameObject.SetActive(true);

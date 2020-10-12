@@ -4016,7 +4016,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c1f2efcc5d62d447a2ded4eeb5bbe9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  pointOrg: {fileID: 8276072108558335279, guid: 5b071aeb8118a174f9fcf4fcab954ae9, type: 3}
+  controlPointOrg: {fileID: 8276072108558335279, guid: 5b071aeb8118a174f9fcf4fcab954ae9, type: 3}
+  knotPointOrg: {fileID: 3397536990110099645, guid: 4231135fa24d786478b17c15b0640264, type: 3}
   lampCount: 1000
   maxControlPointNumber: 21
   operatorUIManager: {fileID: 542727138}

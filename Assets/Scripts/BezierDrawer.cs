@@ -102,7 +102,6 @@ public class BezierDrawer : MonoBehaviour
             pointManager.points[i].transform.position
                 = (float)i / (nn) * ppos[i - 1] + ((1.0f - (float)i / nn) * ppos[i]);
         }
-        pointManager.IsUpdated = true;
     }
 
     /// <summary>

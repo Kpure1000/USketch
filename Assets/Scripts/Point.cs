@@ -38,16 +38,12 @@ public class Point : MonoBehaviour
 
     private void OnMouseEnter()
     {
-        if (!isForbidened)
-            IsContained = true;
-        //Debug.Log("啊我进来了");
+        IsContained = true && !isForbidened;
     }
 
     private void OnMouseExit()
     {
-        if (!isForbidened)
-            IsContained = false;
-        //Debug.Log("啊我又出来了");
+        IsContained = false;
     }
 
     public void setHighlight(HighLightType type)
@@ -74,6 +70,10 @@ public class Point : MonoBehaviour
         spriteRenderer.color = color;
     }
 
+    /// <summary>
+    /// 禁止拖拽
+    /// </summary>
+    /// <param name="isForbiden"></param>
     public void ForbidenDrag(bool isForbiden)
     {
         isForbidened = isForbiden;
