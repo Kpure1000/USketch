@@ -22,6 +22,19 @@ public class MainControl : MonoBehaviour
 
     private BSplineDrawer bSplineDrawer;
 
+    private Resolution[] resolutions;
+
+    private void Awake()
+    {
+
+        resolutions = Screen.resolutions;
+#if !UNITY_EDITOR
+        Screen.SetResolution(resolutions[resolutions.Length - 1].height * 16 / 10,
+            resolutions[resolutions.Length - 1].height, true);
+#endif
+
+    }
+
     private void Start()
     {
         bezierDrawer = GetComponent<BezierDrawer>();
