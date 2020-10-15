@@ -10,6 +10,7 @@
 
 #my dir
 /Build/
+/Build_GL/
 
 #auto file
 *.sln
