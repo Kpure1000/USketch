@@ -49,19 +49,22 @@ public class Point : MonoBehaviour
     public void setHighlight(HighLightType type)
     {
         highLightType = type;
-        switch (type)
+        if (spriteRenderer != null)
         {
-            case HighLightType.NONE:
-                spriteRenderer.color = new Color(0, 1.0f, 1.0f, 0.65f);
-                break;
-            case HighLightType.SINGLW:
-                spriteRenderer.color = new Color(1.0f, 0, 0f, 0.65f);
-                break;
-            case HighLightType.GROUP:
-                spriteRenderer.color = new Color(1.0f, 0, 0f, 0.65f);
-                break;
-            default:
-                break;
+            switch (type)
+            {
+                case HighLightType.NONE:
+                    spriteRenderer.color = new Color(0, 1.0f, 1.0f, 0.65f);
+                    break;
+                case HighLightType.SINGLW:
+                    spriteRenderer.color = new Color(1.0f, 0, 0f, 0.65f);
+                    break;
+                case HighLightType.GROUP:
+                    spriteRenderer.color = new Color(1.0f, 0, 0f, 0.65f);
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
