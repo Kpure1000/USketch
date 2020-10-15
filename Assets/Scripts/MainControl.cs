@@ -29,7 +29,7 @@ public class MainControl : MonoBehaviour
 
         resolutions = Screen.resolutions;
 #if !UNITY_EDITOR
-        Screen.SetResolution(resolutions[resolutions.Length - 1].height * 16 / 10,
+        Screen.SetResolution(resolutions[resolutions.Length - 1].height * 16 / 9,
             resolutions[resolutions.Length - 1].height, true);
 #endif
 
