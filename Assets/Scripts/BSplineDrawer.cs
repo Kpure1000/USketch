@@ -60,21 +60,22 @@ public class BSplineDrawer : MonoBehaviour
     [Obsolete]
     private float deBoor_Cox_RE(int i, int k, float u)
     {
-        if (k == 0)
-        {
-            //Debug.Log(string.Format("u({0}) >= [{1}]({2}) && u({3}) < [{4}]({5})",
-            //    u, i, knot[i], u, i + 1, knot[i + 1]));
-            //Debug.Log(u >= knot[i] && u < knot[i + 1]);
-            return (u >= knot[i] && u < knot[i + 1]) ? 1.0f : 0.0f;
-        }
+        //if (k == 0)
+        //{
+        //    //Debug.Log(string.Format("u({0}) >= [{1}]({2}) && u({3}) < [{4}]({5})",
+        //    //    u, i, knot[i], u, i + 1, knot[i + 1]));
+        //    //Debug.Log(u >= knot[i] && u < knot[i + 1]);
+        //    return (u >= knot[i] && u < knot[i + 1]) ? 1.0f : 0.0f;
+        //}
 
-        div1 = knot[i + k] - knot[i];
-        div2 = knot[i + k + 1] - knot[i + 1];
+        //div1 = knot[i + k] - knot[i];
+        //div2 = knot[i + k + 1] - knot[i + 1];
 
-        U1 = (Mathf.Abs(div1) < 1.0e-6f) ? 1.0f : (u - knot[i]) / div1;
-        U2 = (Mathf.Abs(div2) < 1.0e-6f) ? 1.0f : (knot[i + k + 1] - u) / div2;
+        //U1 = (Mathf.Abs(div1) < 1.0e-6f) ? 1.0f : (u - knot[i]) / div1;
+        //U2 = (Mathf.Abs(div2) < 1.0e-6f) ? 1.0f : (knot[i + k + 1] - u) / div2;
 
-        return U2 * deBoor_Cox_RE(i + 1, k - 1, u) + U1 * deBoor_Cox_RE(i, k - 1, u);
+        //return U2 * deBoor_Cox_RE(i + 1, k - 1, u) + U1 * deBoor_Cox_RE(i, k - 1, u);
+
     }
 
     /// <summary>
