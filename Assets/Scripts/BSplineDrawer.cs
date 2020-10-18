@@ -42,9 +42,15 @@ public class BSplineDrawer : MonoBehaviour
     private void Start()
     {
         knot = new List<float>();
+
         vertexs = new Vertex[pointManager.lampCount];
+
         pTmp = new Vector2[pointManager.maxControlPointNumber];
+
         knotPoints = new List<Point>();
+
+        uArray = new List<float>();
+
         RestartDraw();
     }
 
@@ -74,8 +80,9 @@ public class BSplineDrawer : MonoBehaviour
         //U1 = (Mathf.Abs(div1) < 1.0e-6f) ? 1.0f : (u - knot[i]) / div1;
         //U2 = (Mathf.Abs(div2) < 1.0e-6f) ? 1.0f : (knot[i + k + 1] - u) / div2;
 
-        //return U2 * deBoor_Cox_RE(i + 1, k - 1, u) + U1 * deBoor_Cox_RE(i, k - 1, u);
+        //return U1 * deBoor_Cox_RE(i, k - 1, u) + U2 * deBoor_Cox_RE(i + 1, k - 1, u);
 
+        int rk = 0;
     }
 
     /// <summary>
@@ -430,6 +437,8 @@ public class BSplineDrawer : MonoBehaviour
     private List<float> knot;
 
     private List<Point> knotPoints;
+
+    private List<float> uArray;
 
     private float div1, div2, U1, U2;
 
