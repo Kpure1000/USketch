@@ -63,7 +63,6 @@ public class BSplineDrawer : MonoBehaviour
     /// <param name="k">次数（阶数-1）</param>
     /// <param name="u">节点索引</param>
     /// <returns>基函数的值</returns>
-    [Obsolete]
     private float deBoor_Cox_RE(int i, int k, float u)
     {
         //if (k == 0)
@@ -82,18 +81,51 @@ public class BSplineDrawer : MonoBehaviour
 
         //return U1 * deBoor_Cox_RE(i, k - 1, u) + U2 * deBoor_Cox_RE(i + 1, k - 1, u);
         int k_2 = k * k;
-        for (int it = 0; it < k_2; i++) 
-        {
-            if (it >= uArray.Count)
-            {
-                if (it >= k_2 / 2)
-                {
 
-                }
+        int rk = 0;
+
+        for (int it = 0; it < k_2; it++)
+        {
+            if(it>=uArray.Count)
+            {
+                uArray.Add(0);
             }
         }
 
-        int rk = 0;
+        for (int it = 0; it < k_2; it += 2)
+        {
+            if (it < uArray.Count)
+            {
+                if (it < k_2 / 2)
+                {
+                    uArray[it] = (u >= knot[i + it / 2] && u < knot[i + 1 + it / 2]) ? 1.0f : 0.0f;
+                    uArray[it + 1] = (u >= knot[i + 1 + it / 2] && u < knot[i + 2 + it / 2]) ? 1.0f : 0.0f;
+                }
+                else
+                {
+                    uArray[it] = (u >= knot[i + it / 2 - 1] && u < knot[i + it / 2]) ? 1.0f : 0.0f;
+                    uArray[it + 1] = (u >= knot[i + it / 2] && u < knot[i + 1 + it / 2]) ? 1.0f : 0.0f;
+                }
+            }
+        }
+        rk++;
+        while (rk <= k) 
+        {
+            for (int it = 0; it < k_2; it += 2)
+            {
+                div1 = knot[i + it / 2 + rk] - knot[i + it / 2];
+                div2 = knot[i + it / 2 + rk + 1] - knot[i + it / 2 + 1];
+
+                U1 = (Mathf.Abs(div1) < 1.0e-6f) ? 1.0f : (u - knot[i + it / 2]) / div1;
+                U2 = (Mathf.Abs(div2) < 1.0e-6f) ? 1.0f : (knot[i + it / 2 + rk + 1] - u) / div2;
+
+                uArray[it / 2] = U1 * uArray[it] + U2 * uArray[it + 1];
+
+            }
+            k_2 /= 2;
+            rk++;
+        }
+        return uArray[0];
     }
 
     /// <summary>
@@ -123,10 +155,10 @@ public class BSplineDrawer : MonoBehaviour
                     tmpPos = Vector2.zero;
                     for (int j = 0; j < pointManager.points.Count; j++)
                     {
-                        N_i_k = BaseFunc(j, degree - 1, tMin + (i * dt), knot.ToArray());
+                        //N_i_k = BaseFunc(j, degree - 1, tMin + (i * dt), knot.ToArray());
                         //N_i_k = BaseFunction(j, degree - 1, tMin + (i * dt), knot.ToArray());
-                        //N_i_k = deBoor_Cox_RE(j, degree - 1, tMin + (i * dt));
-                        //Debug.Log("递归: i:" + i + ", j: " + j + ", n: " + N_i_k);
+                        N_i_k = deBoor_Cox_RE(j, degree - 1, tMin + (i * dt));
+                        Debug.Log("递归: i:" + i + ", j: " + j + ", n: " + N_i_k);
                         tmpPos += N_i_k * (Vector2)pointManager.points[j].transform.position;
                     }
                     vertexs[i].pos = tmpPos;
@@ -430,7 +462,7 @@ public class BSplineDrawer : MonoBehaviour
         //SetKnotVector(degree);
         //isShowKnot = false;
         //ShowKnotPoint();
-        if(knotPoints!=null)
+        if (knotPoints != null)
         {
             for (int i = 0; i < knotPoints.Count; i++)
             {
