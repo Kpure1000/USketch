@@ -81,6 +81,17 @@ public class BSplineDrawer : MonoBehaviour
         //U2 = (Mathf.Abs(div2) < 1.0e-6f) ? 1.0f : (knot[i + k + 1] - u) / div2;
 
         //return U1 * deBoor_Cox_RE(i, k - 1, u) + U2 * deBoor_Cox_RE(i + 1, k - 1, u);
+        int k_2 = k * k;
+        for (int it = 0; it < k_2; i++) 
+        {
+            if (it >= uArray.Count)
+            {
+                if (it >= k_2 / 2)
+                {
+
+                }
+            }
+        }
 
         int rk = 0;
     }
