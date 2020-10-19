@@ -116,6 +116,11 @@ public class PointManager : MonoBehaviour
     /// <param name="isRightPressd">是否按下鼠标右键</param>
     void UpdatePoint(bool isLeftPressed, bool isRightPressd)
     {
+        if(Input.GetKeyDown(KeyCode.Delete))
+        {
+            RemovePoint();
+            return;
+        }
         m_mousePosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         if (isRightPressd)
         {
@@ -315,6 +320,21 @@ public class PointManager : MonoBehaviour
         #endregion
         IsUpdated = true;
         ShowPosition(isShowPosition);
+    }
+
+    /// <summary>
+    /// 删除控制点
+    /// </summary>
+    private void RemovePoint()
+    {
+        //  降序
+        dragPointsIndex.Sort((x, y) => { return -x.index.CompareTo(y.index); });
+        for (int i = 0; i < dragPointsIndex.Count; i++)
+        {
+            RemoveAt(dragPointsIndex[i].index);
+        }
+        dragPointsIndex.Clear();
+        IsUpdated = true;
     }
 
     public void RemoveAt(int index)
@@ -567,24 +587,10 @@ public class PointManager : MonoBehaviour
     /// </summary>
     public UpDgreeCall upDgree { get; set; }
 
-    Comparison<Vector2> comp = ((X, Y) =>
+    private Comparison<Vector2> comp = ((X, Y) =>
     {
-        //if (X.x < Y.x) return -1;
-        //if (X.x == Y.x) { if (X.y < Y.y) return -1; }
-        //return 0;
-
-        return (X.x < Y.x)
-               || (X.x == Y.x && X.y < Y.y) ? -1 : 1;
+        return (X.x < Y.x) || (X.x == Y.x && X.y < Y.y) ? -1 : 1;
     });
-
-    //private void OnDrawGizmos()
-    //{
-    //    Gizmos.color = Color.red;
-    //    Gizmos.DrawLine(dragRect.position, new Vector2(dragRect.width, dragRect.y));
-    //    Gizmos.DrawLine(dragRect.position, new Vector2(dragRect.x, dragRect.height));
-    //    Gizmos.DrawLine(dragRect.size, new Vector2(dragRect.width, dragRect.y));
-    //    Gizmos.DrawLine(dragRect.size, new Vector2(dragRect.x, dragRect.height));
-    //}
 
 }
 
