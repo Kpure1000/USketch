@@ -7,8 +7,8 @@ using UnityEngine.Assertions.Comparers;
 
 public class BSplineDrawer : MonoBehaviour
 {
-    [DllImport("DeBoor_Cox.dll", CallingConvention = CallingConvention.Cdecl)]
-    extern static float BaseFunc(int i, int k, float u, float[] knotArray);
+    //[DllImport("DeBoor_Cox.dll", CallingConvention = CallingConvention.Cdecl)]
+    //extern static float BaseFunc(int i, int k, float u, float[] knotArray);
 
     //[DllImport("libMyLibTest.dylib", CallingConvention = CallingConvention.Cdecl)]
     //extern static float BaseFunction(int i, int k, float u, float[] knotArray);
