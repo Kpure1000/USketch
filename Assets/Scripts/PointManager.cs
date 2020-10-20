@@ -116,7 +116,7 @@ public class PointManager : MonoBehaviour
     /// <param name="isRightPressd">是否按下鼠标右键</param>
     void UpdatePoint(bool isLeftPressed, bool isRightPressd)
     {
-        if(Input.GetKeyDown(KeyCode.Delete))
+        if (Input.GetKeyDown(KeyCode.Delete) || Input.GetKeyDown(KeyCode.Backspace)) 
         {
             RemovePoint();
             return;

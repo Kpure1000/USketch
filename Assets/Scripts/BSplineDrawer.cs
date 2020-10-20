@@ -186,20 +186,20 @@ public class BSplineDrawer : MonoBehaviour
     {
         int k, j;
         double t1, t2;
-        for (j = i - de + 1; j <= i + 1; j++)
+        for (j = 0; j <= de + 1; j++)
         {
-            pTmp[j] = pointManager.points[j].transform.position;
+            pTmp[j + i - de] = pointManager.points[j + i - de].transform.position;
         }
-        for (k = 1; k <= de; k++)
+        for (k = 1; k <= de + 1; k++)
         {
-            for (j = i + 1; j >= i - de + k + 1; j--)
+            for (j = de; j >= i - 1; j--)
             {
-                t1 = (float)(knot[j + de - k] - u) / (knot[j + de - k] - knot[j - 1]);
+                t1 = (float)(u - knot[j + i - de]) / (knot[j + 1 + i - k] - knot[j + i - de]);
                 t2 = 1.0f - t1;
-                pTmp[j] = (float)t1 * pTmp[j - 1] + (float)t2 * pTmp[j];
+                pTmp[j] = (float)t2 * pTmp[j - 1] + (float)t1 * pTmp[j];
             }
         }
-        return pTmp[i + 1];
+        return pTmp[de];
     }
 
     [Obsolete]
@@ -437,7 +437,8 @@ public class BSplineDrawer : MonoBehaviour
     {
         SetKnotVector(pointManager.points.Count + degree);
         //由自己实现控制点的回调
-        pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBSpline_RE);
+        //pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBSpline_RE);
+        pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBSpline);
         pointManager.getCurveInfo = new PointManager.GetCurveInfoCall(getBSplineInfo);
         pointManager.setPolygon = (isShow) => { isShowPolygon = isShow; };
         pointManager.setConvexHull = (isShow) => { isShowConvexHull = isShow; };
