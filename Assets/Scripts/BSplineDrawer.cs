@@ -7,8 +7,8 @@ using UnityEngine.Assertions.Comparers;
 
 public class BSplineDrawer : MonoBehaviour
 {
-    //[DllImport("DeBoor_Cox.dll", CallingConvention = CallingConvention.Cdecl)]
-    //extern static float BaseFunc(int i, int k, float u, float[] knotArray);
+    [DllImport("DeBoor_Cox.dll", CallingConvention = CallingConvention.Cdecl)]
+    extern static float BaseFunc(int i, int k, float u, float[] knotArray);
 
     //[DllImport("libMyLibTest.dylib", CallingConvention = CallingConvention.Cdecl)]
     //extern static float BaseFunction(int i, int k, float u, float[] knotArray);
@@ -155,10 +155,10 @@ public class BSplineDrawer : MonoBehaviour
                     tmpPos = Vector2.zero;
                     for (int j = 0; j < pointManager.points.Count; j++)
                     {
-                        //N_i_k = BaseFunc(j, degree - 1, tMin + (i * dt), knot.ToArray());
+                        N_i_k = BaseFunc(j, degree - 1, tMin + (i * dt), knot.ToArray());
                         //N_i_k = BaseFunction(j, degree - 1, tMin + (i * dt), knot.ToArray());
-                        N_i_k = deBoor_Cox_RE(j, degree - 1, tMin + (i * dt));
-                        Debug.Log("递归: i:" + i + ", j: " + j + ", n: " + N_i_k);
+                        //N_i_k = deBoor_Cox_RE(j, degree - 1, tMin + (i * dt));
+                        //Debug.Log("递归: i:" + i + ", j: " + j + ", n: " + N_i_k);
                         tmpPos += N_i_k * (Vector2)pointManager.points[j].transform.position;
                     }
                     vertexs[i].pos = tmpPos;
@@ -220,7 +220,7 @@ public class BSplineDrawer : MonoBehaviour
             {
                 if (knot[i + 1] > knot[i])
                 {
-                    Debug.Log("绘制");
+                    //Debug.Log("绘制");
                     for (ii = 0; ii < subLamp; ii++)
                     {
                         u = (float)(knot[i] + ii * (knot[i + 1] - knot[i]) / subLamp);
@@ -230,8 +230,8 @@ public class BSplineDrawer : MonoBehaviour
                     }
                 }
             }
-            Debug.Log("应有顶点: " + pointManager.lampCount +
-                "个， 实际顶点: " + verIndex + "个");
+            //Debug.Log("应有顶点: " + pointManager.lampCount +
+            //    "个， 实际顶点: " + verIndex + "个");
         }
     }
 
@@ -437,8 +437,8 @@ public class BSplineDrawer : MonoBehaviour
     {
         SetKnotVector(pointManager.points.Count + degree);
         //由自己实现控制点的回调
-        //pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBSpline_RE);
-        pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBSpline);
+        pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBSpline_RE);
+        //pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBSpline);
         pointManager.getCurveInfo = new PointManager.GetCurveInfoCall(getBSplineInfo);
         pointManager.setPolygon = (isShow) => { isShowPolygon = isShow; };
         pointManager.setConvexHull = (isShow) => { isShowConvexHull = isShow; };
