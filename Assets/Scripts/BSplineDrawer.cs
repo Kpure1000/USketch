@@ -186,20 +186,20 @@ public class BSplineDrawer : MonoBehaviour
     {
         int k, j;
         double t1, t2;
-        for (j = 0; j <= de + 1; j++)
+        for (j = i - de + 1; j <= de + 1; j++)
         {
-            pTmp[j + i - de] = pointManager.points[j + i - de].transform.position;
+            pTmp[j] = pointManager.points[j].transform.position;
         }
-        for (k = 1; k <= de + 1; k++)
+        for (k = 1; k <= de; k++)
         {
-            for (j = de; j >= i - 1; j--)
+            for (j = i + 1; j >= i - de + k + 1; j--)
             {
-                t1 = (float)(u - knot[j + i - de]) / (knot[j + 1 + i - k] - knot[j + i - de]);
+                t1 = (float)(knot[j + de - k] - u) / (knot[j + de - k] - knot[j - 1]);
                 t2 = 1.0f - t1;
-                pTmp[j] = (float)t2 * pTmp[j - 1] + (float)t1 * pTmp[j];
+                pTmp[j] = (float)t1 * pTmp[j - 1] + (float)t2 * pTmp[j];
             }
         }
-        return pTmp[de];
+        return pTmp[i + 1];
     }
 
     [Obsolete]
@@ -215,8 +215,7 @@ public class BSplineDrawer : MonoBehaviour
             float u;
             int subLamp = (pointManager.lampCount) / (knot.Count - 1);
             int verIndex = 0;
-            for (i = degree; i < pointManager.points.Count - 1; i++)
-            //for (i = 0; i + 1 < knot.Count; i++)
+            for (i = degree - 2; i < knot.Count + degree - 2; i++)
             {
                 if (knot[i + 1] > knot[i])
                 {
