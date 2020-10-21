@@ -39,7 +39,17 @@ public class BSplineDrawer : MonoBehaviour
 
         vertexs = new Vertex[pointManager.lampCount];
 
-        uArray = new float[(int)Mathf.Pow(2, maxDegree + 1)];
+        tArray = new TNode[pow2(maxDegree) - 1];
+        //初始化递归树
+        tArray[0].offset = 0;
+        tArray[0].val = 0.0f;
+        for (int i = 1; i < tArray.Length; i++)
+        {
+            tArray[i].offset = i % 2 != 0 ? tArray[(i - 1) / 2].offset : tArray[(i - 2) / 2].offset + 1;
+            tArray[i].val = 0.0f;
+        }
+
+        uArray = new float[pow2(maxDegree - 1)];
 
         knotPoints = new List<Point>();
 
@@ -49,7 +59,6 @@ public class BSplineDrawer : MonoBehaviour
     /// <summary>
     /// 更新点集
     /// </summary>
-    [Obsolete]
     private void UpdateBSpline()
     {
         if (pointManager.IsUpdated)
@@ -75,6 +84,7 @@ public class BSplineDrawer : MonoBehaviour
                     for (int j = 0; j < pointManager.points.Count; j++)
                     {
                         N_i_k = deBoor_Cox(j, degree - 1, tMin + (i * dt));
+                        //Debug.Log(string.Format("递归: j: {0}, u: {1}", j, N_i_k));
                         tmpPos += N_i_k * (Vector2)pointManager.points[j].transform.position;
                     }
                     vertexs[i].pos = tmpPos;
@@ -91,7 +101,7 @@ public class BSplineDrawer : MonoBehaviour
     }
 
     /// <summary>
-    /// 
+    /// deBoor-Cox 算法，利用递归树消除递归
     /// </summary>
     /// <param name="i"></param>
     /// <param name="de"></param>
@@ -99,33 +109,65 @@ public class BSplineDrawer : MonoBehaviour
     /// <returns></returns>
     private float deBoor_Cox(int i, int de, float u)
     {
-        k_2 = (int)Mathf.Pow(2, de);
+        treeLineNum = pow2(de);
         rk = 0;
-        for (int it = 0; it < k_2; it += 2)
+        for (int it = 0; it < treeLineNum; it += 1)
         {
-            if (it < uArray.Length)
-            {
-                uArray[it] = (u >= knot[i + it / 2] && u < knot[i + 1 + it / 2]) ? 1.0f : 0.0f;
-                uArray[it + 1] = (u >= knot[i + 1 + it / 2] && u < knot[i + 2 + it / 2]) ? 1.0f : 0.0f;
-            }
+            //uArray[it] = (u >= knot[i + it / 2] && u < knot[i + 1 + it / 2]) ? 1.0f : 0.0f;
+            //uArray[it + 1] = (u >= knot[i + 1 + it / 2] && u < knot[i + 2 + it / 2]) ? 1.0f : 0.0f;            
+
+            uArray[it] = (u >= knot[i + tArray[indexer(de, it)].offset]
+                && u < knot[i + tArray[indexer(de, it)].offset + 1]) ? 1.0f : 0.0f;
+            Debug.Log(string.Format("u[{0}] = {1}.", uArray[it]));
+
+            //uArray[it + 1] = (u >= knot[i + tArray[indexer(de, it + 1)].offset]
+            //    && u < knot[i + tArray[indexer(de, it + 1) + 1].offset + 1]) ? 1.0f : 0.0f;
         }
         rk++;
+        treeLineNum /= 2;
         while (rk <= de)
         {
-            for (int it = 0; it < k_2; it += 2)
+            for (int it = 0; it < treeLineNum; it += 1)
             {
-                div1 = knot[i + it / 2 + rk] - knot[i + it / 2];
-                div2 = knot[i + it / 2 + rk + 1] - knot[i + it / 2 + 1];
+                //div1 = knot[i + it / 2 + rk] - knot[i + it / 2];
+                //div2 = knot[i + it / 2 + rk + 1] - knot[i + it / 2 + 1];
 
-                U1 = (Mathf.Abs(div1) < 1e-3f) ? 1.0f : (u - knot[i + it / 2]) / div1;
-                U2 = (Mathf.Abs(div2) < 1e-3f) ? 1.0f : (knot[i + it / 2 + rk + 1] - u) / div2;
+                div1 = knot[tArray[i + indexer(de - rk, it)].offset + rk]
+                    - knot[tArray[i + indexer(de - rk, it)].offset];
 
-                uArray[it / 2] = U1 * uArray[it] + U2 * uArray[it + 1];
+                div2 = knot[tArray[i + indexer(de - rk, it)].offset + rk + 1]
+                    - knot[tArray[i + indexer(de - rk, it)].offset + 1];
+
+
+                //U1 = (Mathf.Abs(div1) < 1e-3f) ? 1.0f : (u - knot[i + it / 2]) / div1;
+                //U2 = (Mathf.Abs(div2) < 1e-3f) ? 1.0f : (knot[i + it / 2 + rk + 1] - u) / div2;
+
+                U1 = (Mathf.Abs(div1) < 1e-3f) ? 1.0f
+                    : (u - knot[tArray[i + indexer(de - rk, it)].offset]) / div1;
+
+                U2 = (Mathf.Abs(div2) < 1e-3f) ? 1.0f
+                    : (knot[tArray[i + indexer(de - rk, it)].offset + rk + 1] - u) / div2;
+
+                //uArray[it / 2] = U1 * uArray[it] + U2 * uArray[it + 1];
+
+                uArray[it]
+                    = U1 * uArray[it * 2]
+                    + U2 * uArray[it * 2 + 1];
             }
-            k_2 /= 2;
+            treeLineNum /= 2;
             rk++;
         }
         return uArray[0];
+    }
+
+    private int indexer(int k,int it)
+    {
+        return pow2(k) - 1 + it;
+    }
+
+    private int pow2(int pow)
+    {
+        return (int)Mathf.Pow(2, pow);
     }
 
     private void getBSplineInfo(ref string type, ref string degree,
@@ -376,7 +418,7 @@ public class BSplineDrawer : MonoBehaviour
 
     private float div1, div2, U1, U2;
 
-    private int rk, k_2;
+    private int rk, treeLineNum;
 
     private bool isShowPolygon;
 
@@ -388,7 +430,15 @@ public class BSplineDrawer : MonoBehaviour
 
     private Vertex[] vertexs;
 
+    private TNode[] tArray;
+
     private float[] uArray;
+
+    public struct TNode
+    {
+        public int offset;
+        public float val;
+    }
 
     private Vector2 tmpPos;
 

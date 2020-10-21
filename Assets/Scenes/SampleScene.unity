@@ -1321,7 +1321,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   pointManager: {fileID: 1685353683}
-  degree: 4
+  degree: 3
   minDegree: 2
   maxDegree: 5
 --- !u!114 &519420034
