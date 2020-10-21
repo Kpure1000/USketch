@@ -84,7 +84,7 @@ public class BSplineDrawer : MonoBehaviour
                     for (int j = 0; j < pointManager.points.Count; j++)
                     {
                         N_i_k = deBoor_Cox(j, degree - 1, tMin + (i * dt));
-                        //Debug.Log(string.Format("递归: j: {0}, u: {1}", j, N_i_k));
+                        outKnot("递归结果: ", j, degree - 1, N_i_k);
                         tmpPos += N_i_k * (Vector2)pointManager.points[j].transform.position;
                     }
                     vertexs[i].pos = tmpPos;
@@ -118,7 +118,8 @@ public class BSplineDrawer : MonoBehaviour
 
             uArray[it] = (u >= knot[i + tArray[indexer(de, it)].offset]
                 && u < knot[i + tArray[indexer(de, it)].offset + 1]) ? 1.0f : 0.0f;
-            Debug.Log(string.Format("u[{0}] = {1}.", uArray[it]));
+
+            outKnot("r", i + tArray[indexer(de, it)].offset, rk, uArray[it]);
 
             //uArray[it + 1] = (u >= knot[i + tArray[indexer(de, it + 1)].offset]
             //    && u < knot[i + tArray[indexer(de, it + 1) + 1].offset + 1]) ? 1.0f : 0.0f;
@@ -153,11 +154,18 @@ public class BSplineDrawer : MonoBehaviour
                 uArray[it]
                     = U1 * uArray[it * 2]
                     + U2 * uArray[it * 2 + 1];
+
+                outKnot("", i + tArray[indexer(de - rk, it)].offset, de - rk, uArray[it]);
             }
             treeLineNum /= 2;
             rk++;
         }
         return uArray[0];
+    }
+
+    void outKnot(string att,int i,int k,float val)
+    {
+        Debug.Log(att + "[" + i + ", " + k + "]: " + val);
     }
 
     private int indexer(int k,int it)
