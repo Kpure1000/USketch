@@ -84,7 +84,7 @@ public class BSplineDrawer : MonoBehaviour
                     for (int j = 0; j < pointManager.points.Count; j++)
                     {
                         N_i_k = deBoor_Cox(j, degree - 1, tMin + (i * dt));
-                        outKnot("递归结果: ", j, degree - 1, N_i_k);
+                        //outKnot("递归结果: ", j, degree - 1, N_i_k);
                         tmpPos += N_i_k * (Vector2)pointManager.points[j].transform.position;
                     }
                     vertexs[i].pos = tmpPos;
@@ -119,43 +119,40 @@ public class BSplineDrawer : MonoBehaviour
             uArray[it] = (u >= knot[i + tArray[indexer(de, it)].offset]
                 && u < knot[i + tArray[indexer(de, it)].offset + 1]) ? 1.0f : 0.0f;
 
-            outKnot("r", i + tArray[indexer(de, it)].offset, rk, uArray[it]);
+            //outKnot("r", i + tArray[indexer(de, it)].offset, rk, uArray[it]);
 
             //uArray[it + 1] = (u >= knot[i + tArray[indexer(de, it + 1)].offset]
             //    && u < knot[i + tArray[indexer(de, it + 1) + 1].offset + 1]) ? 1.0f : 0.0f;
         }
         rk++;
-        treeLineNum /= 2;
         while (rk <= de)
         {
-            for (int it = 0; it < treeLineNum; it += 1)
+            for (int it = 0; it < treeLineNum; it += 2)
             {
                 //div1 = knot[i + it / 2 + rk] - knot[i + it / 2];
                 //div2 = knot[i + it / 2 + rk + 1] - knot[i + it / 2 + 1];
 
-                div1 = knot[tArray[i + indexer(de - rk, it)].offset + rk]
-                    - knot[tArray[i + indexer(de - rk, it)].offset];
+                div1 = knot[tArray[i + indexer(de - rk, it / 2)].offset + rk]
+                    - knot[tArray[i + indexer(de - rk, it / 2)].offset];
 
-                div2 = knot[tArray[i + indexer(de - rk, it)].offset + rk + 1]
-                    - knot[tArray[i + indexer(de - rk, it)].offset + 1];
+                div2 = knot[tArray[i + indexer(de - rk, it / 2)].offset + rk + 1]
+                    - knot[tArray[i + indexer(de - rk, it/2)].offset + 1];
 
 
                 //U1 = (Mathf.Abs(div1) < 1e-3f) ? 1.0f : (u - knot[i + it / 2]) / div1;
                 //U2 = (Mathf.Abs(div2) < 1e-3f) ? 1.0f : (knot[i + it / 2 + rk + 1] - u) / div2;
 
                 U1 = (Mathf.Abs(div1) < 1e-3f) ? 1.0f
-                    : (u - knot[tArray[i + indexer(de - rk, it)].offset]) / div1;
+                    : (u - knot[tArray[i + indexer(de - rk, it/2)].offset]) / div1;
 
                 U2 = (Mathf.Abs(div2) < 1e-3f) ? 1.0f
-                    : (knot[tArray[i + indexer(de - rk, it)].offset + rk + 1] - u) / div2;
+                    : (knot[tArray[i + indexer(de - rk, it/2)].offset + rk + 1] - u) / div2;
 
                 //uArray[it / 2] = U1 * uArray[it] + U2 * uArray[it + 1];
 
-                uArray[it]
-                    = U1 * uArray[it * 2]
-                    + U2 * uArray[it * 2 + 1];
+                uArray[it / 2] = U1 * uArray[it] + U2 * uArray[it + 1];
 
-                outKnot("", i + tArray[indexer(de - rk, it)].offset, de - rk, uArray[it]);
+                //outKnot("", i + tArray[indexer(de - rk, it)].offset, de - rk, uArray[it]);
             }
             treeLineNum /= 2;
             rk++;
