@@ -8,6 +8,10 @@
 /Library/
 /ProjectSettings/
 
+*/Debug/
+*/x86/
+*/x64/
+
 #my dir
 /Build/
 /Build_GL/
@@ -16,6 +20,11 @@
 *.sln
 *.csproj
 *.DS_Store
+
+*.vcxproj
+*.filters
+*.user
+
 
 #myfile
 *.zip
