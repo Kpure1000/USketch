@@ -39,14 +39,12 @@ public class BSplineDrawer : MonoBehaviour
 
         vertexs = new Vertex[pointManager.lampCount];
 
-        tArray = new TNode[pow2(maxDegree) - 1];
+        tArray = new int[pow2(maxDegree) - 1];
         //初始化递归树
-        tArray[0].offset = 0;
-        tArray[0].val = 0.0f;
+        tArray[0]  = 0;
         for (int i = 1; i < tArray.Length; i++)
         {
-            tArray[i].offset = i % 2 != 0 ? tArray[(i - 1) / 2].offset : tArray[(i - 2) / 2].offset + 1;
-            tArray[i].val = 0.0f;
+            tArray[i]  = i % 2 != 0 ? tArray[(i - 1) / 2]  : tArray[(i - 2) / 2]  + 1;
         }
 
         uArray = new float[pow2(maxDegree - 1)];
@@ -113,46 +111,29 @@ public class BSplineDrawer : MonoBehaviour
         rk = 0;
         for (int it = 0; it < treeLineNum; it += 1)
         {
-            //uArray[it] = (u >= knot[i + it / 2] && u < knot[i + 1 + it / 2]) ? 1.0f : 0.0f;
-            //uArray[it + 1] = (u >= knot[i + 1 + it / 2] && u < knot[i + 2 + it / 2]) ? 1.0f : 0.0f;            
-
-            uArray[it] = (u >= knot[i + tArray[indexer(de, it)].offset]
-                && u < knot[i + tArray[indexer(de, it)].offset + 1]) ? 1.0f : 0.0f;
-
-            //outKnot("r", i + tArray[indexer(de, it)].offset, rk, uArray[it]);
-
-            //uArray[it + 1] = (u >= knot[i + tArray[indexer(de, it + 1)].offset]
-            //    && u < knot[i + tArray[indexer(de, it + 1) + 1].offset + 1]) ? 1.0f : 0.0f;
+            uArray[it] = (u >= knot[i + tArray[indexer(de, it)] ]
+                && u < knot[i + tArray[indexer(de, it)]  + 1]) ? 1.0f : 0.0f;
         }
         rk++;
         while (rk <= de)
         {
             for (int it = 0; it < treeLineNum; it += 2)
             {
-                //div1 = knot[i + it / 2 + rk] - knot[i + it / 2];
-                //div2 = knot[i + it / 2 + rk + 1] - knot[i + it / 2 + 1];
 
-                div1 = knot[tArray[i + indexer(de - rk, it / 2)].offset + rk]
-                    - knot[tArray[i + indexer(de - rk, it / 2)].offset];
+                div1 = knot[i + tArray[indexer(de - rk, it / 2)]  + rk]
+                    - knot[i + tArray[indexer(de - rk, it / 2)] ];
 
-                div2 = knot[tArray[i + indexer(de - rk, it / 2)].offset + rk + 1]
-                    - knot[tArray[i + indexer(de - rk, it/2)].offset + 1];
-
-
-                //U1 = (Mathf.Abs(div1) < 1e-3f) ? 1.0f : (u - knot[i + it / 2]) / div1;
-                //U2 = (Mathf.Abs(div2) < 1e-3f) ? 1.0f : (knot[i + it / 2 + rk + 1] - u) / div2;
+                div2 = knot[i + tArray[indexer(de - rk, it / 2)]  + rk + 1]
+                    - knot[i + tArray[indexer(de - rk, it / 2)]  + 1];
 
                 U1 = (Mathf.Abs(div1) < 1e-3f) ? 1.0f
-                    : (u - knot[tArray[i + indexer(de - rk, it/2)].offset]) / div1;
+                    : (u - knot[i + tArray[indexer(de - rk, it / 2)] ]) / div1;
 
                 U2 = (Mathf.Abs(div2) < 1e-3f) ? 1.0f
-                    : (knot[tArray[i + indexer(de - rk, it/2)].offset + rk + 1] - u) / div2;
-
-                //uArray[it / 2] = U1 * uArray[it] + U2 * uArray[it + 1];
+                    : (knot[i + tArray[indexer(de - rk, it / 2)]  + rk + 1] - u) / div2;
 
                 uArray[it / 2] = U1 * uArray[it] + U2 * uArray[it + 1];
 
-                //outKnot("", i + tArray[indexer(de - rk, it)].offset, de - rk, uArray[it]);
             }
             treeLineNum /= 2;
             rk++;
@@ -435,15 +416,9 @@ public class BSplineDrawer : MonoBehaviour
 
     private Vertex[] vertexs;
 
-    private TNode[] tArray;
+    private int[] tArray;
 
     private float[] uArray;
-
-    public struct TNode
-    {
-        public int offset;
-        public float val;
-    }
 
     private Vector2 tmpPos;
 
