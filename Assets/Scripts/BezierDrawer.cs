@@ -97,7 +97,7 @@ public class BezierDrawer : MonoBehaviour
         {
             ppos.Add(pointManager.points[i].transform.position);
         }
-        for (int i = 1; i < nn; i++) 
+        for (int i = 1; i < nn; i++)
         {
             pointManager.points[i].transform.position
                 = (float)i / (nn) * ppos[i - 1] + ((1.0f - (float)i / nn) * ppos[i]);
@@ -188,14 +188,14 @@ public class BezierDrawer : MonoBehaviour
         if (pointManager.IsAddRect)
         {
             BSplineDrawer.DrawVirtualLine(pointManager.dragRect.position,
-                new Vector2(pointManager.dragRect.width, pointManager.dragRect.y), Color.red,0.1f);
+                new Vector2(pointManager.dragRect.width, pointManager.dragRect.y), Color.red, 0.1f);
             BSplineDrawer.DrawVirtualLine(pointManager.dragRect.position,
                 new Vector2(pointManager.dragRect.x, pointManager.dragRect.height), Color.red, 0.1f);
             BSplineDrawer.DrawVirtualLine(pointManager.dragRect.size,
                 new Vector2(pointManager.dragRect.width, pointManager.dragRect.y), Color.red, 0.1f);
             BSplineDrawer.DrawVirtualLine(pointManager.dragRect.size,
                 new Vector2(pointManager.dragRect.x, pointManager.dragRect.height), Color.red, 0.1f);
-            
+
         }
     }
 

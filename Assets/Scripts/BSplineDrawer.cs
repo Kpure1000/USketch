@@ -7,6 +7,11 @@ using UnityEngine.Assertions.Comparers;
 
 public class BSplineDrawer : MonoBehaviour
 {
+    [DllImport("DeBoor_Cox")]
+    static extern float BaseFunc_RE(int i, int k, float u, float[] knot);
+    [DllImport("DeBoor_Cox")]
+    static extern float BaseFunc(int i, int k, float u, float[] knot, float[] uArray, int[] tArray);
+
     public PointManager pointManager;
 
     [Tooltip("曲线阶数")]
@@ -25,14 +30,6 @@ public class BSplineDrawer : MonoBehaviour
 
     /**********************************************************/
 
-    //private void Awake()
-    //{
-    //    knot = new List<double>();
-    //    vertexs = new Vertex[pointManager.lampCount];
-    //    knotPoints = new List<Point>();
-    //    RestartDraw();
-    //}
-
     private void Start()
     {
         knot = new List<float>();
@@ -41,10 +38,10 @@ public class BSplineDrawer : MonoBehaviour
 
         tArray = new int[pow2(maxDegree) - 1];
         //初始化递归树
-        tArray[0]  = 0;
+        tArray[0] = 0;
         for (int i = 1; i < tArray.Length; i++)
         {
-            tArray[i]  = i % 2 != 0 ? tArray[(i - 1) / 2]  : tArray[(i - 2) / 2]  + 1;
+            tArray[i] = i % 2 != 0 ? tArray[(i - 1) / 2] : tArray[(i - 2) / 2] + 1;
         }
 
         uArray = new float[pow2(maxDegree - 1)];
@@ -63,7 +60,7 @@ public class BSplineDrawer : MonoBehaviour
         {
             if (knot.Count != pointManager.points.Count + degree)
             {
-                SetKnotVector(pointManager.points.Count + degree);
+                UpdateKnotVector(pointManager.points.Count + degree);
             }
 
             tMin = knot[degree - 1];
@@ -81,8 +78,10 @@ public class BSplineDrawer : MonoBehaviour
                     tmpPos = Vector2.zero;
                     for (int j = 0; j < pointManager.points.Count; j++)
                     {
-                        N_i_k = deBoor_Cox(j, degree - 1, tMin + (i * dt));
-                        //outKnot("递归结果: ", j, degree - 1, N_i_k);
+                        N_i_k = deBoor_Cox(j, degree - 1, tMin + (i * dt)); //  C#实现的迭代基函数
+                        //N_i_k = BaseFunc_RE(j, degree - 1, tMin + (i * dt), knot.ToArray()); //  C实现的递归基函数
+                        //N_i_k = BaseFunc(j, degree - 1, tMin + (i * dt), knot.ToArray(), uArray, tArray); //  C实现的迭代基函数
+                        
                         tmpPos += N_i_k * (Vector2)pointManager.points[j].transform.position;
                     }
                     vertexs[i].pos = tmpPos;
@@ -101,36 +100,38 @@ public class BSplineDrawer : MonoBehaviour
     /// <summary>
     /// deBoor-Cox 算法，利用递归树消除递归
     /// </summary>
-    /// <param name="i"></param>
-    /// <param name="de"></param>
-    /// <param name="u"></param>
+    /// <param name="i">控制点index</param>
+    /// <param name="de">曲线次数</param>
+    /// <param name="u">插值</param>
     /// <returns></returns>
     private float deBoor_Cox(int i, int de, float u)
     {
         treeLineNum = pow2(de);
         rk = 0;
+        ri = 0;
         for (int it = 0; it < treeLineNum; it += 1)
         {
-            uArray[it] = (u >= knot[i + tArray[indexer(de, it)] ]
-                && u < knot[i + tArray[indexer(de, it)]  + 1]) ? 1.0f : 0.0f;
+            ri = tArray[indexer(de, it)];
+            uArray[it] = (u >= knot[i + ri]
+                && u < knot[i + ri + 1]) ? 1.0f : 0.0f;
         }
         rk++;
         while (rk <= de)
         {
             for (int it = 0; it < treeLineNum; it += 2)
             {
+                ri = tArray[indexer(de - rk, it / 2)];
+                div1 = knot[i + ri + rk]
+                    - knot[i + ri];
 
-                div1 = knot[i + tArray[indexer(de - rk, it / 2)]  + rk]
-                    - knot[i + tArray[indexer(de - rk, it / 2)] ];
-
-                div2 = knot[i + tArray[indexer(de - rk, it / 2)]  + rk + 1]
-                    - knot[i + tArray[indexer(de - rk, it / 2)]  + 1];
+                div2 = knot[i + ri + rk + 1]
+                    - knot[i + ri + 1];
 
                 U1 = (Mathf.Abs(div1) < 1e-3f) ? 1.0f
-                    : (u - knot[i + tArray[indexer(de - rk, it / 2)] ]) / div1;
+                    : (u - knot[i + ri]) / div1;
 
                 U2 = (Mathf.Abs(div2) < 1e-3f) ? 1.0f
-                    : (knot[i + tArray[indexer(de - rk, it / 2)]  + rk + 1] - u) / div2;
+                    : (knot[i + ri + rk + 1] - u) / div2;
 
                 uArray[it / 2] = U1 * uArray[it] + U2 * uArray[it + 1];
 
@@ -141,14 +142,14 @@ public class BSplineDrawer : MonoBehaviour
         return uArray[0];
     }
 
-    void outKnot(string att,int i,int k,float val)
+    void outKnot(string att, int i, int k, float val)
     {
         Debug.Log(att + "[" + i + ", " + k + "]: " + val);
     }
 
-    private int indexer(int k,int it)
+    private int indexer(int k, int it)
     {
-        return pow2(k) - 1 + it;
+        return (int)Mathf.Pow(2, k) - 1 + it;
     }
 
     private int pow2(int pow)
@@ -186,7 +187,7 @@ public class BSplineDrawer : MonoBehaviour
     /// 生成均匀递增的节点向量
     /// </summary>
     /// <param name="knotNum"></param>
-    private void SetKnotVector(int knotNum)
+    private void UpdateKnotVector(int knotNum)
     {
         if (knot == null)
         {
@@ -196,6 +197,7 @@ public class BSplineDrawer : MonoBehaviour
         {
             knot.Clear();
         }
+        string knotStr = "";
         for (int i = 0; i < knotNum; i++)
         {
             knot.Add((float)i / (knotNum - 1));
@@ -211,9 +213,11 @@ public class BSplineDrawer : MonoBehaviour
             //{
             //    knot.Add(knot[i - 1]);
             //}
+            //knotStr += knot[i].ToString() + " ";
             // 0 1 2 3 4, 2,3
             // 0 0 1 2 2
         }
+        Debug.Log(knotStr);
     }
 
     public void ShowKnotPoint()
@@ -356,7 +360,7 @@ public class BSplineDrawer : MonoBehaviour
     /// </summary>
     public void RestartDraw()
     {
-        SetKnotVector(pointManager.points.Count + degree);
+        UpdateKnotVector(pointManager.points.Count + degree);
         //由自己实现控制点的回调
         pointManager.updateCurveData = new PointManager.UpdateCurveDataCall(UpdateBSpline);
         pointManager.getCurveInfo = new PointManager.GetCurveInfoCall(getBSplineInfo);
@@ -404,7 +408,7 @@ public class BSplineDrawer : MonoBehaviour
 
     private float div1, div2, U1, U2;
 
-    private int rk, treeLineNum;
+    private int rk, ri, treeLineNum;
 
     private bool isShowPolygon;
 
