@@ -10,8 +10,8 @@ __A Sketcher of Bezier/B-Spline Curves by Unity3D__
 * Hold Right on control point and  move to **DRAG** it
 * Hold Left on space place without point and move to draw a rectangle to **SELECT** control point(s)
   * The selected control point(s) will be **HIGHLIGHT** and 
-    * Can be **DRAG** together
-    * Can be **DELETE** together
+    * Can be **DRAG** together, just HOLD ON and MOVE
+    * Can be **DELETE** together, just *PRESS* delete or *backspace*
 * Move cursor on right operator UI to select **function**
   * open dropdown list and **select** curve between Bezier and B-spline
   * play/exit lamping **animation**
@@ -47,4 +47,4 @@ __A Sketcher of Bezier/B-Spline Curves by Unity3D__
 
 ## Some new design
 
-* Point Manager 里面更新控制点的部分用状态机重新写一下，不然很难添加功能
+* <s>Point Manager 里面更新控制点的部分用状态机重新写一下，不然很难添加功能</s>
