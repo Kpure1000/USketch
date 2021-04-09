@@ -2,7 +2,19 @@
 
 __A Sketcher of Bezier/B-Spline Curves by Unity3D__
 
+## Screen Catchs
 
+* __Bezier__
+
+![](https://github.com/Kpure1000/ImageRepository/blob/master/USketch_SC1.jpg)
+
+* __B-Spline__
+
+![](https://github.com/Kpure1000/ImageRepository/blob/master/USketch_SC2.jpg)
+
+* __B-Spline-cusp(尖点)__
+
+![](https://github.com/Kpure1000/ImageRepository/blob/master/USketch_SC3.jpg)
 
 ## Usage
 
